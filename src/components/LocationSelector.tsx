@@ -73,8 +73,8 @@ async function getAddressSuggestionsAPI(query: string) {
             name: p?.displayName?.text ?? p?.shortFormattedAddress ?? p?.formattedAddress ?? '',
             display_name: p?.formattedAddress ?? p?.shortFormattedAddress ?? '',
             address: p?.formattedAddress ?? p?.shortFormattedAddress ?? '',
-            lat: p?.location?.latitude,
-            lon: p?.location?.longitude,
+            lat: String(p?.location?.latitude),
+            lon: String(p?.location?.longitude),
             raw: p
         }));
     } catch (err) {
@@ -174,8 +174,8 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({
 	const syncAddressToContext = (address: SavedAddress | null) => {
 		if (address) {
 			setContextLocation({
-				latitude: address.latitude,
-				longitude: address.longitude,
+				latitude: String(address.latitude),
+				longitude: String(address.longitude),
 				full_address: address.full_address,
 				name: address.name,
 				id: address.id,
