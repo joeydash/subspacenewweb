@@ -1,0 +1,15 @@
+# --- API proxy for backend ---
+/api/*           https://api.superflow.run/:splat                    200
+
+# --- Blog proxy ---
+/blogs         https://blogs.subspace.money/blogs  200        
+/blogs/*         https://blogs.subspace.money/blogs/:splat   200       
+/blog/*          https://blogs.subspace.money/blog/:splat  200       
+/about-us        https://blogs.subspace.money/about-us   200         
+/contact         https://blogs.subspace.money/contact    200           
+/docs/*          https://blogs.subspace.money/docs/:splat   200        
+/assets/*        https://blogs.subspace.money/assets/:splat   200      
+/static/*        https://blogs.subspace.money/static/:splat    200     
+
+# --- Fallback for React SPA routing (MUST BE LAST) ---
+/*               /index.html                                         200
