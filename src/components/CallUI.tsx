@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Phone, Mic, Volume2, VolumeX, Loader2, X } from 'lucide-react';
 import { cn } from '../utils/cn';
-import { CallStatusIndicator } from './CallStatusIndicator';
 import { toast } from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
 
 interface CallUIProps {
-	phoneNumber: string;
-	tokenId: string;
+	friendId: string;
+	friendName: string;
 	onCallEnd?: () => void;
 	autoStart?: boolean;
 }
@@ -25,7 +24,53 @@ interface AudioClientRef {
 	ws: WebSocket | null;
 }
 
-export function CallUI({ phoneNumber, tokenId, onCallEnd, autoStart = false }: CallUIProps) {
+const formatStatusLabel = (status: string | null): string => {
+	if (!status) {
+		return 'Connected';
+	}
+
+	const readable = status.replace(/[_-]+/g, ' ');
+	return readable.charAt(0).toUpperCase() + readable.slice(1);
+};
+
+const getStatusVisualClasses = (status: string | null, isConnecting: boolean) => {
+	if (isConnecting) {
+		return {
+			badge: 'bg-amber-500/10 text-amber-300',
+			icon: 'bg-amber-500/15 text-amber-300'
+		};
+	}
+
+	const normalized = (status || '').toLowerCase().replace(/[_\s]+/g, '-');
+
+	if (!normalized) {
+		return {
+			badge: 'bg-emerald-500/10 text-emerald-300',
+			icon: 'bg-emerald-500/15 text-emerald-300'
+		};
+	}
+
+	if (['fail', 'failed', 'canceled', 'cancelled', 'busy', 'no-answer', 'noanswer'].includes(normalized)) {
+		return {
+			badge: 'bg-red-500/10 text-red-300',
+			icon: 'bg-red-500/15 text-red-300'
+		};
+	}
+
+	if (['completed', 'ended'].includes(normalized)) {
+		return {
+			badge: 'bg-emerald-500/10 text-emerald-300',
+			icon: 'bg-emerald-500/15 text-emerald-300'
+		};
+	}
+
+	return {
+		badge: 'bg-sky-500/10 text-sky-300',
+		icon: 'bg-sky-500/15 text-sky-300'
+	};
+};
+
+export function CallUI({ friendId, friendName, onCallEnd, autoStart = false }: CallUIProps) {
 	const [connecting, setConnecting] = useState(false);
 	const [connected, setConnected] = useState(false);
 	const [muted, setMuted] = useState(false);
@@ -41,16 +86,13 @@ export function CallUI({ phoneNumber, tokenId, onCallEnd, autoStart = false }: C
 	const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
 	const { user } = useAuthStore();
-	// const authToken = user?.auth_token;
-	const authToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjYXJlZXJfdXNlcl9pZCI6bnVsbCwiY2FycmllciI6InBob25lIiwiZHAiOiJodHRwczovL2Nkbi5zdWJzcGFjZS5tb25leS93aGF0c3ViX2ltYWdlcy91c2VyLTM3MTE4NTAtMzEwNTI2NSsxLnBuZyIsImNyZWF0ZWRfYXQiOiIyMDI1LTA0LTA1VDE1OjI3OjEyLjA2NjQ3NiswMDowMCIsImVtYWlsIjoibXJpdHVuam95LmRhc0BzdWJzcGFjZS5tb25leSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJmdWxsbmFtZSI6Ik1yaXR1bmpveSBEYXMiLCJpZCI6IjM4ZmJiMjk2LTg4OTktNGJjZi05Y2VlLTg3MDljMjQyZWJiYyIsInBob25lIjoiKzkxODA3Mzc1NjQxMSIsInBob25lX3ZlcmlmaWVkIjp0cnVlLCJ1cGRhdGVkX2F0IjoiMjAyNS0xMC0yOVQxNzo0MjowNy43ODg0MiswMDowMCIsInVzZXJuYW1lIjoibXJpdHVuam95ZGFzIiwicm9sZSI6InVzZXIiLCJ3ZWJzaXRlX2lkIjoiZTM0NGNhZjctODMxYS00Mjk4LWI0YmQtYzgzNWZiZmY5YmU3IiwiaWF0IjoxNzYxNzU5NzI4LCJleHAiOjE3NjE4NDYxMjh9.gOihN17dQ5RlKxuvhqzlqgcqt4PJqLcg2ZO1e7KaWe4";
-	// console.log('Auth Token:', authToken);
-
+	const authToken = user?.auth_token;
 	// Auto-start call if enabled
 	useEffect(() => {
-		if (autoStart && phoneNumber && tokenId && !connecting && !connected) {
+		if (autoStart && !connecting && !connected) {
 			handleMakeCall();
 		}
-	}, [autoStart, phoneNumber, tokenId]);
+	}, [autoStart]);
 
 	// Clean up on unmount
 	useEffect(() => {
@@ -90,9 +132,11 @@ export function CallUI({ phoneNumber, tokenId, onCallEnd, autoStart = false }: C
 		}
 
 		const pollCallStatus = async () => {
-			console.log('Polling call status');
+			if (!authToken) {
+				return;
+			}
 			try {
-				const response = await fetch('https://db.vocallabs.ai/v1/graphql', {
+				const response = await fetch('https://db.subspace.money/v1/graphql', {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
@@ -100,16 +144,11 @@ export function CallUI({ phoneNumber, tokenId, onCallEnd, autoStart = false }: C
 					},
 					body: JSON.stringify({
 						query: `
-							query LiveDataQuery($call_id: uuid = "") {
-								vocallabs_call_data(where: {call_id: {_eq: $call_id}, type: {_eq: "external"}}, order_by: {created_at: desc}) {
+							query GetCallStatus($call_id: uuid!) {
+								whatsub_user_calls(where: { call_id: { _eq: $call_id } }) {
 									id
-									key
-									value
-									created_at
-								}
-								vocallabs_calls(where: {id: {_eq: $call_id}}) {
-									call_billing
-									call_status
+									call_id
+									status
 								}
 							}
 						`,
@@ -120,36 +159,23 @@ export function CallUI({ phoneNumber, tokenId, onCallEnd, autoStart = false }: C
 				});
 
 				const result = await response.json();
-				console.log('call status ', result);
-				const { vocallabs_calls } = result.data;
+				const calls = result?.data?.whatsub_user_calls || [];
 
-				if (vocallabs_calls && vocallabs_calls.length > 0) {
-					const call = vocallabs_calls[0];
-					const newStatus = call.call_status;
-					const newBilling = call.call_billing;
-
-					console.log('new status:', newStatus);
+				if (calls.length > 0) {
+					const call = calls[0];
+					const newStatus = call?.status;
 
 					if (newStatus !== callStatus) {
 						setCallStatus(newStatus);
-						console.log('Call status updated:', newStatus);
 						
 						// Check for terminal call states
 						const terminalStatuses = ['fail', 'failed', 'completed', 'ended', 'busy', 'no-answer', 'canceled', 'cancelled'];
 						if (terminalStatuses.includes(newStatus?.toLowerCase() || '')) {
-							console.log('Terminal status detected, disconnecting...');
 							if (audioClientRef.current && audioClientRef.current.isConnected) {
 								audioClientRef.current.disconnect();
 							}
 							setConnected(false);
 							setConnecting(false);
-						}
-					}
-
-					if (newBilling !== callBilling) {
-						setCallBilling(newBilling);
-						if (newBilling) {
-							console.log('Call billing updated:', newBilling);
 						}
 					}
 				}
@@ -163,7 +189,6 @@ export function CallUI({ phoneNumber, tokenId, onCallEnd, autoStart = false }: C
 
 		return () => {
 			if (pollingIntervalRef.current) {
-				console.log('call status polling ended')
 				clearInterval(pollingIntervalRef.current);
 				pollingIntervalRef.current = null;
 			}
@@ -179,7 +204,7 @@ export function CallUI({ phoneNumber, tokenId, onCallEnd, autoStart = false }: C
 	};
 
 	const handleMakeCall = async () => {
-		if (!phoneNumber.trim() || !tokenId || !user?.id || !authToken) {
+		if (!user?.id || !authToken) {
 			toast.error('Please enter a phone number and select an API token');
 			return;
 		}
@@ -188,7 +213,7 @@ export function CallUI({ phoneNumber, tokenId, onCallEnd, autoStart = false }: C
 			setConnecting(true);
 			addLog('Initiating call...', 'info');
 
-			const response = await fetch('https://db.vocallabs.ai/v1/graphql', {
+			const response = await fetch('https://db.subspace.money/v1/graphql', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -196,34 +221,39 @@ export function CallUI({ phoneNumber, tokenId, onCallEnd, autoStart = false }: C
 				},
 				body: JSON.stringify({
 					query: `
-						query MakeDirectCall($number:String!,$client_token_id:uuid!){
-							VocallabsCreateDirectCall(request:{number:$number,client_token_id:$client_token_id}){
-								status
-								call_id
+						mutation CreateDirectCall($user_id: uuid!, $friend_id: uuid!) {
+							createDirectCall(request: {user_id: $user_id, friend_id: $friend_id}) {
+								success
 								message
-								websocket
+								data
 							}
 						}
 					`,
 					variables: {
-						number: phoneNumber,
-						client_token_id: '65ad06a0-8289-4c45-87dd-a4221110b9d7'
+						user_id: user?.id,
+						friend_id: friendId
 					}
 				})
 			});
 
 			const result = await response.json();
-			const { VocallabsCreateDirectCall } = result.data;
+			const { createDirectCall } = result.data;
 
-			if (!VocallabsCreateDirectCall?.websocket) {
-				throw new Error(VocallabsCreateDirectCall?.message || 'Failed to get WebSocket URL');
+
+			if (!createDirectCall?.success) {
+				throw new Error(createDirectCall?.message || 'Failed to create call');
 			}
 
-			setCallId(VocallabsCreateDirectCall.call_id);
-			setCallStatus(VocallabsCreateDirectCall?.status || 'queued'); // Set initial status
-			addLog(`Call initiated with ID: ${VocallabsCreateDirectCall.call_id}`, 'success');
+			const callData = createDirectCall.data;
+			if (!callData?.websocket) {
+				throw new Error('Failed to get WebSocket URL');
+			}
 
-			initializeAudioClient(VocallabsCreateDirectCall.websocket);
+			setCallId(callData.call_id);
+			setCallStatus(callData?.status || 'queued'); // Set initial status
+			addLog(`Call initiated with ID: ${callData.call_id}`, 'success');
+
+			initializeAudioClient(callData.websocket);
 
 		} catch (err: any) {
 			console.error('Error making call:', err);
@@ -705,7 +735,7 @@ export function CallUI({ phoneNumber, tokenId, onCallEnd, autoStart = false }: C
 			setHangingUp(true);
 			addLog('Ending call...', 'info');
 
-			await fetch('https://db.vocallabs.ai/v1/graphql', {
+			await fetch('/graphql', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -763,7 +793,7 @@ export function CallUI({ phoneNumber, tokenId, onCallEnd, autoStart = false }: C
 				<button
 					type="button"
 					onClick={handleMakeCall}
-					disabled={connecting || !phoneNumber.trim() || !tokenId}
+					disabled={connecting}
 					className={cn(
 						"inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg",
 						"text-white bg-green-500",
@@ -779,98 +809,112 @@ export function CallUI({ phoneNumber, tokenId, onCallEnd, autoStart = false }: C
 		);
 	}
 
+	const statusLabel = connecting ? 'Calling...' : formatStatusLabel(callStatus);
+	const statusVisual = getStatusVisualClasses(callStatus, connecting);
+	const statusDescription = connecting
+		? 'Hang tight while we connect your call.'
+		: `Status: ${statusLabel}. Use the controls below to manage your audio.`;
+	const controlsDisabled = !connected || hangingUp;
+
 	return (
 		<div className="space-y-4">
-			{connecting && (
-				<div className="flex items-center justify-center py-8">
-					<div className="text-center">
-						<Loader2 className="w-8 h-8 animate-spin mx-auto text-green-500 mb-2" />
-						<p className="text-sm text-gray-400">Connecting call...</p>
-					</div>
-				</div>
-			)}
-
-			{connected && (
-				<div className="space-y-3 sm:space-y-4">
-					{/* Call Status Info */}
-					<div className="flex items-center justify-between gap-2">
-						<div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
-							{callStatus ? (
-								<CallStatusIndicator
-									status={callStatus === 'fail' ? 'failed' : callStatus}
-									className="flex-shrink-0"
-								/>
-							) : (
-								<div className="p-1.5 sm:p-2 bg-green-500/20 rounded-full flex-shrink-0">
-									<Phone className="h-4 w-4 sm:h-5 sm:w-5 text-green-400" />
-								</div>
+			<div className="rounded-2xl border border-dark-300 bg-dark-400 p-4 sm:p-5 space-y-4 transition-colors">
+				<div className="flex items-center justify-between gap-3">
+					<div className="flex items-center gap-3 min-w-0 flex-1">
+						<div
+							className={cn(
+								'flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full',
+								statusVisual.icon
 							)}
-							<div className="min-w-0 flex-1">
-								<p className="text-xs sm:text-sm text-white font-medium truncate">
-									{phoneNumber}
-								</p>
-								{callBilling && (
+						>
+							{connecting ? (
+								<Loader2 className="h-5 w-5 animate-spin" />
+							) : (
+								<Phone className="h-5 w-5" />
+							)}
+						</div>
+						<div className="min-w-0">
+							<p className="text-sm sm:text-base font-semibold text-white truncate">{friendName}</p>
+							<div className="mt-1 flex items-center gap-2 flex-wrap">
+								<span
+									className={cn(
+										'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-wide',
+										statusVisual.badge
+									)}
+								>
+									{statusLabel}
+								</span>
+								{callBilling && connected && (
 									<span className="text-xs text-gray-400">
 										Cost: ${callBilling.toFixed(4)}
 									</span>
 								)}
 							</div>
 						</div>
-						<div className="flex space-x-1.5 sm:space-x-2 flex-shrink-0">
-							<button
-								onClick={handleToggleMute}
-								className={cn(
-									"p-1.5 sm:p-2 rounded-lg transition-colors",
-									muted
-										? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
-										: "bg-dark-300 text-gray-400 hover:bg-dark-200"
-								)}
-								title={muted ? "Unmute microphone" : "Mute microphone"}
-							>
-								<Mic className="w-4 h-4 sm:w-5 sm:h-5" />
-							</button>
-							<button
-								onClick={handleToggleSpeaker}
-								className={cn(
-									"p-1.5 sm:p-2 rounded-lg transition-colors",
-									speakerMuted
-										? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
-										: "bg-dark-300 text-gray-400 hover:bg-dark-200"
-								)}
-								title={speakerMuted ? "Unmute speaker" : "Mute speaker"}
-							>
-								{speakerMuted ? <VolumeX className="w-4 h-4 sm:w-5 sm:h-5" /> : <Volume2 className="w-4 h-4 sm:w-5 sm:h-5" />}
-							</button>
-						</div>
 					</div>
-
-					{/* End Call Button */}
+				</div>
+				<p className="text-xs text-gray-400 min-h-[1.25rem]">{statusDescription}</p>
+				<div className="grid grid-cols-2 gap-2 sm:gap-3">
 					<button
 						type="button"
-						onClick={handleDisconnect}
-						disabled={hangingUp}
+						onClick={handleToggleMute}
+						disabled={controlsDisabled}
+						aria-pressed={muted}
 						className={cn(
-							"w-full py-2 sm:py-2.5 text-xs sm:text-sm font-medium rounded-lg",
-							"text-white bg-red-600",
-							"hover:bg-red-700",
-							"transition-colors flex items-center justify-center gap-1.5 sm:gap-2",
-							"disabled:opacity-50 disabled:cursor-not-allowed"
+							'flex flex-col items-center justify-center gap-1 rounded-xl border px-3 py-3 sm:px-4 sm:py-4 text-xs sm:text-sm font-medium transition-all',
+							controlsDisabled
+								? 'border-dark-300 bg-dark-500 text-gray-500 cursor-not-allowed opacity-60'
+								: muted
+									? 'border-red-500/60 bg-red-500/10 text-red-300 hover:border-red-400/70'
+									: 'border-dark-300 bg-dark-500 text-gray-100 hover:border-dark-100 hover:bg-dark-300'
 						)}
 					>
-						{hangingUp ? (
-							<>
-								<Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
-								Ending Call...
-							</>
-						) : (
-							<>
-								<X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-								End Call
-							</>
+						<Mic className="h-5 w-5" />
+						<span>{muted ? 'Mic Off' : 'Mic On'}</span>
+					</button>
+					<button
+						type="button"
+						onClick={handleToggleSpeaker}
+						disabled={controlsDisabled}
+						aria-pressed={speakerMuted}
+						className={cn(
+							'flex flex-col items-center justify-center gap-1 rounded-xl border px-3 py-3 sm:px-4 sm:py-4 text-xs sm:text-sm font-medium transition-all',
+							controlsDisabled
+								? 'border-dark-300 bg-dark-500 text-gray-500 cursor-not-allowed opacity-60'
+								: speakerMuted
+									? 'border-red-500/60 bg-red-500/10 text-red-300 hover:border-red-400/70'
+									: 'border-dark-300 bg-dark-500 text-gray-100 hover:border-dark-100 hover:bg-dark-300'
 						)}
+					>
+						{speakerMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+						<span>{speakerMuted ? 'Speaker Off' : 'Speaker On'}</span>
 					</button>
 				</div>
-			)}
+			</div>
+			<button
+				type="button"
+				onClick={handleDisconnect}
+				disabled={hangingUp}
+				className={cn(
+					'w-full py-2 sm:py-2.5 text-xs sm:text-sm font-medium rounded-lg',
+					'text-white bg-red-600',
+					'hover:bg-red-700',
+					'transition-colors flex items-center justify-center gap-1.5 sm:gap-2',
+					'disabled:opacity-50 disabled:cursor-not-allowed'
+				)}
+			>
+				{hangingUp ? (
+					<>
+						<Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
+						Ending Call...
+					</>
+				) : (
+					<>
+						<X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+						{connecting ? 'Cancel Call' : 'End Call'}
+					</>
+				)}
+			</button>
 		</div>
 	);
 }

@@ -7,7 +7,7 @@ export const fadeOut = {
     transition: {
       duration: 0.4,
       ease: [0.76, 0, 0.24, 1],
-      delay: 0.5,
+      delay: 1.5,
     },
   },
 };
@@ -89,6 +89,7 @@ export const anim = {
     transition: {
       duration: 0.8,
       ease: "easeOut",
+      delay: 0.8,
     },
   },
 };

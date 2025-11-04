@@ -106,365 +106,365 @@ const MessageView: React.FC<MessageViewProps> = ({
 	onScroll
 }) => {
 
-  const { t } = useLanguageStore();
-const [showDeleteMenu, setShowDeleteMenu] = useState(false);
-const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+	const { t } = useLanguageStore();
+	const [showDeleteMenu, setShowDeleteMenu] = useState(false);
+	const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
-const messagesEndRef = useRef<HTMLDivElement>(null);
-const firstUnreadRef = useRef<HTMLDivElement>(null);
-const messagesContainerRef = useRef<HTMLDivElement>(null);
-const fileInputRef = useRef<HTMLInputElement>(null);
-const emojiPickerRef = useRef<HTMLDivElement>(null);
-const textareaRef = useRef<HTMLTextAreaElement>(null);
-const userSentMessageRef = useRef(false);
-const hasScrolledToUnreadRef = useRef(false);
+	const messagesEndRef = useRef<HTMLDivElement>(null);
+	const firstUnreadRef = useRef<HTMLDivElement>(null);
+	const messagesContainerRef = useRef<HTMLDivElement>(null);
+	const fileInputRef = useRef<HTMLInputElement>(null);
+	const emojiPickerRef = useRef<HTMLDivElement>(null);
+	const textareaRef = useRef<HTMLTextAreaElement>(null);
+	const userSentMessageRef = useRef(false);
+	const hasScrolledToUnreadRef = useRef(false);
 
-// Add refs to track pagination state
-const isLoadingOlderMessagesRef = useRef(false);
-const shouldMaintainScrollRef = useRef(false);
-const isInitialLoadRef = useRef(true);
-const currentChatIdRef = useRef<string | null>(null);
+	// Add refs to track pagination state
+	const isLoadingOlderMessagesRef = useRef(false);
+	const shouldMaintainScrollRef = useRef(false);
+	const isInitialLoadRef = useRef(true);
+	const currentChatIdRef = useRef<string | null>(null);
 
-  useLayoutEffect(() => {
-    textareaRef.current?.focus();
-  }, [selectedChat?.id])
+	useLayoutEffect(() => {
+		textareaRef.current?.focus();
+	}, [selectedChat?.id])
 
-// Reset refs when chat changes
-useEffect(() => {
-	if (selectedChat?.id !== currentChatIdRef.current) {
-		isLoadingOlderMessagesRef.current = false;
-		shouldMaintainScrollRef.current = false;
-		isInitialLoadRef.current = true;
-		hasScrolledToUnreadRef.current = false;
-		currentChatIdRef.current = selectedChat?.id || null;
-		
-		setShowDeleteMenu(false);
-		setShowEmojiPicker(false);
-	}
-}, [selectedChat?.id]);
+	// Reset refs when chat changes
+	useEffect(() => {
+		if (selectedChat?.id !== currentChatIdRef.current) {
+			isLoadingOlderMessagesRef.current = false;
+			shouldMaintainScrollRef.current = false;
+			isInitialLoadRef.current = true;
+			hasScrolledToUnreadRef.current = false;
+			currentChatIdRef.current = selectedChat?.id || null;
 
-// Close emoji picker when clicking outside
-useEffect(() => {
-	const handleClickOutside = (event: MouseEvent) => {
-		if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+			setShowDeleteMenu(false);
 			setShowEmojiPicker(false);
 		}
-	};
+	}, [selectedChat?.id]);
 
-	document.addEventListener('mousedown', handleClickOutside);
-	return () => document.removeEventListener('mousedown', handleClickOutside);
-}, []);
-
- // Replace the scroll-to-unread effect with this version that only scrolls the container:
-useEffect(() => {
-	if (!hasUnreadMessages || !firstUnreadMessageId || hasScrolledToUnreadRef.current || isLoadingMessages) {
-		return;
-	}
-
-	// Wait for next frame to ensure layout is complete
-	const scrollTimeout = setTimeout(() => {
-		requestAnimationFrame(() => {
-			const container = messagesContainerRef.current;
-			const unreadMarker = firstUnreadRef.current;
-			
-			if (container && unreadMarker) {
-				// Get the position of the unread marker relative to the container
-				const containerRect = container.getBoundingClientRect();
-				const markerRect = unreadMarker.getBoundingClientRect();
-				
-				// Calculate the scroll position needed to center the unread marker
-				// Use offsetTop which gives position relative to the offsetParent (the container)
-				const markerOffsetTop = unreadMarker.offsetTop;
-				const containerHeight = container.clientHeight;
-				const markerHeight = unreadMarker.clientHeight;
-				
-				// Calculate scroll position to center the marker
-				const targetScrollTop = markerOffsetTop - (containerHeight / 2) + (markerHeight / 2);
-				
-				// Scroll the container directly
-				container.scrollTop = targetScrollTop;
-				
-				// Fine-tune: scroll up a bit to show context
-				setTimeout(() => {
-					if (container) {
-						container.scrollTop = Math.max(0, container.scrollTop - 50);
-					}
-				}, 100);
-				
-				hasScrolledToUnreadRef.current = true;
+	// Close emoji picker when clicking outside
+	useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+				setShowEmojiPicker(false);
 			}
-		});
-	}, 200);
+		};
 
-	return () => clearTimeout(scrollTimeout);
-}, [messages.length, hasUnreadMessages, firstUnreadMessageId, isLoadingMessages]);
+		document.addEventListener('mousedown', handleClickOutside);
+		return () => document.removeEventListener('mousedown', handleClickOutside);
+	}, []);
 
-// UPDATED: Simplified main scroll effect for other scenarios
-useEffect(() => {
-	if (shouldMaintainScrollRef.current) {
-		shouldMaintainScrollRef.current = false;
-		return;
-	}
+	// Replace the scroll-to-unread effect with this version that only scrolls the container:
+	useEffect(() => {
+		if (!hasUnreadMessages || !firstUnreadMessageId || hasScrolledToUnreadRef.current || isLoadingMessages) {
+			return;
+		}
 
-	if (isLoadingOlderMessagesRef.current) {
-		return;
-	}
-
-	if (messages.length > 0 && !isLoadingMessages) {
-		const timer = setTimeout(() => {
-			// User sent message - always scroll to bottom
-			if (userSentMessageRef.current) {
-				if (messagesEndRef.current) {
-					messagesEndRef.current.scrollIntoView({
-						behavior: 'smooth',
-						block: 'end'
-					});
-				}
-				userSentMessageRef.current = false;
-			} 
-			// Initial load without unread - scroll to bottom
-			else if (isInitialLoadRef.current && !hasUnreadMessages) {
-				if (messagesEndRef.current) {
-					messagesEndRef.current.scrollIntoView({
-						behavior: 'instant',
-						block: 'end'
-					});
-				}
-				isInitialLoadRef.current = false;
-			} 
-			// New messages while viewing - scroll only if near bottom
-			else if (!isInitialLoadRef.current && !hasScrolledToUnreadRef.current) {
+		// Wait for next frame to ensure layout is complete
+		const scrollTimeout = setTimeout(() => {
+			requestAnimationFrame(() => {
 				const container = messagesContainerRef.current;
-				if (container) {
-					const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
-					if (isNearBottom && messagesEndRef.current) {
+				const unreadMarker = firstUnreadRef.current;
+
+				if (container && unreadMarker) {
+					// Get the position of the unread marker relative to the container
+					const containerRect = container.getBoundingClientRect();
+					const markerRect = unreadMarker.getBoundingClientRect();
+
+					// Calculate the scroll position needed to center the unread marker
+					// Use offsetTop which gives position relative to the offsetParent (the container)
+					const markerOffsetTop = unreadMarker.offsetTop;
+					const containerHeight = container.clientHeight;
+					const markerHeight = unreadMarker.clientHeight;
+
+					// Calculate scroll position to center the marker
+					const targetScrollTop = markerOffsetTop - (containerHeight / 2) + (markerHeight / 2);
+
+					// Scroll the container directly
+					container.scrollTop = targetScrollTop;
+
+					// Fine-tune: scroll up a bit to show context
+					setTimeout(() => {
+						if (container) {
+							container.scrollTop = Math.max(0, container.scrollTop - 50);
+						}
+					}, 100);
+
+					hasScrolledToUnreadRef.current = true;
+				}
+			});
+		}, 200);
+
+		return () => clearTimeout(scrollTimeout);
+	}, [messages.length, hasUnreadMessages, firstUnreadMessageId, isLoadingMessages]);
+
+	// UPDATED: Simplified main scroll effect for other scenarios
+	useEffect(() => {
+		if (shouldMaintainScrollRef.current) {
+			shouldMaintainScrollRef.current = false;
+			return;
+		}
+
+		if (isLoadingOlderMessagesRef.current) {
+			return;
+		}
+
+		if (messages.length > 0 && !isLoadingMessages) {
+			const timer = setTimeout(() => {
+				// User sent message - always scroll to bottom
+				if (userSentMessageRef.current) {
+					if (messagesEndRef.current) {
 						messagesEndRef.current.scrollIntoView({
 							behavior: 'smooth',
 							block: 'end'
 						});
 					}
+					userSentMessageRef.current = false;
 				}
-			}
-			
-			if (isInitialLoadRef.current) {
-				isInitialLoadRef.current = false;
-			}
-		}, 100);
-
-		return () => clearTimeout(timer);
-	}
-}, [messages, isLoadingMessages, hasUnreadMessages]);
-
-// Keep your existing handleScroll function unchanged - it's working well for pagination
-const handleScroll = async () => {
-	const container = messagesContainerRef.current;
-	if (!container) return;
-
-	const scrollTop = container.scrollTop;
-	const scrollHeight = container.scrollHeight;
-
-	// Check for pagination when scrolled to top
-	if (scrollTop <= 100 &&
-		hasMoreMessages &&
-		!isLoadingMoreMessages &&
-		!isLoadingOlderMessagesRef.current &&
-		!isInitialLoadRef.current) {
-
-		// Mark that we're loading older messages
-		isLoadingOlderMessagesRef.current = true;
-		shouldMaintainScrollRef.current = true;
-
-		// Find the first visible message more accurately
-		const messages = container.querySelectorAll('[data-message-id]');
-		let anchorMessage = null;
-		let anchorOffset = 0;
-
-		// Find the first message that's at least partially visible
-		for (const message of messages) {
-			const rect = message.getBoundingClientRect();
-			const containerRect = container.getBoundingClientRect();
-
-			// Check if this message is visible in the viewport
-			if (rect.top >= containerRect.top && rect.top <= containerRect.bottom) {
-				anchorMessage = message;
-				// Store the exact distance from the container top to the message top
-				anchorOffset = rect.top - containerRect.top;
-				break;
-			}
-		}
-
-		// If no message found, use the first message as fallback
-		if (!anchorMessage && messages.length > 0) {
-			anchorMessage = messages[0];
-			const rect = anchorMessage.getBoundingClientRect();
-			const containerRect = container.getBoundingClientRect();
-			anchorOffset = rect.top - containerRect.top;
-		}
-
-		// Store the message ID for finding it after new messages load
-		const anchorMessageId = anchorMessage?.getAttribute('data-message-id');
-
-		try {
-			// Load more messages
-			await onLoadMoreMessages();
-
-			// After messages are loaded, restore scroll position
-			requestAnimationFrame(() => {
-				setTimeout(() => {
-					if (container && messagesContainerRef.current && anchorMessageId) {
-						// Find the anchor message by its ID
-						const sameMessage = container.querySelector(`[data-message-id="${anchorMessageId}"]`);
-
-						if (sameMessage) {
-							const rect = sameMessage.getBoundingClientRect();
-							const containerRect = container.getBoundingClientRect();
-							const currentOffset = rect.top - containerRect.top;
-
-							// Calculate how much we need to scroll to restore the position
-							const scrollAdjustment = currentOffset - anchorOffset;
-
-							// Apply the scroll adjustment
-							container.scrollTop = container.scrollTop + scrollAdjustment;
-						} else {
-							// Fallback: maintain position based on height difference
-							const newScrollHeight = container.scrollHeight;
-							const scrollDifference = newScrollHeight - scrollHeight;
-							container.scrollTop = scrollTop + scrollDifference;
+				// Initial load without unread - scroll to bottom
+				else if (isInitialLoadRef.current && !hasUnreadMessages) {
+					if (messagesEndRef.current) {
+						messagesEndRef.current.scrollIntoView({
+							behavior: 'instant',
+							block: 'end'
+						});
+					}
+					isInitialLoadRef.current = false;
+				}
+				// New messages while viewing - scroll only if near bottom
+				else if (!isInitialLoadRef.current && !hasScrolledToUnreadRef.current) {
+					const container = messagesContainerRef.current;
+					if (container) {
+						const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+						if (isNearBottom && messagesEndRef.current) {
+							messagesEndRef.current.scrollIntoView({
+								behavior: 'smooth',
+								block: 'end'
+							});
 						}
 					}
-				}, 50); // Small delay to ensure DOM is updated
-			});
-		} finally {
-			// Always reset the loading flag after a delay
-			setTimeout(() => {
-				isLoadingOlderMessagesRef.current = false;
+				}
+
+				if (isInitialLoadRef.current) {
+					isInitialLoadRef.current = false;
+				}
 			}, 100);
+
+			return () => clearTimeout(timer);
+		}
+	}, [messages, isLoadingMessages, hasUnreadMessages]);
+
+	// Keep your existing handleScroll function unchanged - it's working well for pagination
+	const handleScroll = async () => {
+		const container = messagesContainerRef.current;
+		if (!container) return;
+
+		const scrollTop = container.scrollTop;
+		const scrollHeight = container.scrollHeight;
+
+		// Check for pagination when scrolled to top
+		if (scrollTop <= 100 &&
+			hasMoreMessages &&
+			!isLoadingMoreMessages &&
+			!isLoadingOlderMessagesRef.current &&
+			!isInitialLoadRef.current) {
+
+			// Mark that we're loading older messages
+			isLoadingOlderMessagesRef.current = true;
+			shouldMaintainScrollRef.current = true;
+
+			// Find the first visible message more accurately
+			const messages = container.querySelectorAll('[data-message-id]');
+			let anchorMessage = null;
+			let anchorOffset = 0;
+
+			// Find the first message that's at least partially visible
+			for (const message of messages) {
+				const rect = message.getBoundingClientRect();
+				const containerRect = container.getBoundingClientRect();
+
+				// Check if this message is visible in the viewport
+				if (rect.top >= containerRect.top && rect.top <= containerRect.bottom) {
+					anchorMessage = message;
+					// Store the exact distance from the container top to the message top
+					anchorOffset = rect.top - containerRect.top;
+					break;
+				}
+			}
+
+			// If no message found, use the first message as fallback
+			if (!anchorMessage && messages.length > 0) {
+				anchorMessage = messages[0];
+				const rect = anchorMessage.getBoundingClientRect();
+				const containerRect = container.getBoundingClientRect();
+				anchorOffset = rect.top - containerRect.top;
+			}
+
+			// Store the message ID for finding it after new messages load
+			const anchorMessageId = anchorMessage?.getAttribute('data-message-id');
+
+			try {
+				// Load more messages
+				await onLoadMoreMessages();
+
+				// After messages are loaded, restore scroll position
+				requestAnimationFrame(() => {
+					setTimeout(() => {
+						if (container && messagesContainerRef.current && anchorMessageId) {
+							// Find the anchor message by its ID
+							const sameMessage = container.querySelector(`[data-message-id="${anchorMessageId}"]`);
+
+							if (sameMessage) {
+								const rect = sameMessage.getBoundingClientRect();
+								const containerRect = container.getBoundingClientRect();
+								const currentOffset = rect.top - containerRect.top;
+
+								// Calculate how much we need to scroll to restore the position
+								const scrollAdjustment = currentOffset - anchorOffset;
+
+								// Apply the scroll adjustment
+								container.scrollTop = container.scrollTop + scrollAdjustment;
+							} else {
+								// Fallback: maintain position based on height difference
+								const newScrollHeight = container.scrollHeight;
+								const scrollDifference = newScrollHeight - scrollHeight;
+								container.scrollTop = scrollTop + scrollDifference;
+							}
+						}
+					}, 50); // Small delay to ensure DOM is updated
+				});
+			} finally {
+				// Always reset the loading flag after a delay
+				setTimeout(() => {
+					isLoadingOlderMessagesRef.current = false;
+				}, 100);
+			}
+		}
+
+		// Call the parent's scroll handler
+		onScroll();
+	};
+
+	// Keep all your other functions unchanged
+	const formatTime = (dateString: string) => {
+		const date = new Date(dateString);
+		return date.toLocaleTimeString('en-US', {
+			hour: '2-digit',
+			minute: '2-digit',
+			hour12: true
+		}).toLowerCase();
+	};
+
+	const formatDate = (dateString: string) => {
+		const date = new Date(dateString);
+		const today = new Date();
+
+		if (date.toDateString() === today.toDateString()) {
+			return t('common.today');
+		}
+
+		const yesterday = new Date(today);
+		yesterday.setDate(yesterday.getDate() - 1);
+
+		if (date.toDateString() === yesterday.toDateString()) {
+			return t('common.yesterday');
+		}
+
+		return date.toLocaleDateString('en-US', {
+			day: '2-digit',
+			month: 'short',
+			year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
+		});
+	};
+
+	function formatLastActive(timestamp: any) {
+		if (!timestamp) return "";
+
+		const lastActiveDate = new Date(timestamp);
+		const now = new Date();
+
+		const diffMs = now.getTime() - lastActiveDate.getTime();
+		const diffSec = Math.floor(diffMs / 1000);
+		const diffMin = Math.floor(diffSec / 60);
+		const diffHours = Math.floor(diffMin / 60);
+		const diffDays = Math.floor(diffHours / 24);
+
+		if (diffMin < 2) {
+			return "active now";
+		} else if (diffMin < 60) {
+			return `active ${diffMin} min${diffMin > 1 ? "s" : ""} ago`;
+		} else if (diffHours < 24) {
+			return `active ${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
+		} else if (diffDays < 7) {
+			return `active ${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+		} else {
+			return `last seen on ${lastActiveDate.toLocaleDateString()} at ${lastActiveDate.toLocaleTimeString()}`;
 		}
 	}
 
-	// Call the parent's scroll handler
-	onScroll();
-};
-
-// Keep all your other functions unchanged
-const formatTime = (dateString: string) => {
-	const date = new Date(dateString);
-	return date.toLocaleTimeString('en-US', {
-		hour: '2-digit',
-		minute: '2-digit',
-		hour12: true
-	}).toLowerCase();
-};
-
-const formatDate = (dateString: string) => {
-	const date = new Date(dateString);
-	const today = new Date();
-
-	if (date.toDateString() === today.toDateString()) {
-		return t('common.today');
-	}
-
-	const yesterday = new Date(today);
-	yesterday.setDate(yesterday.getDate() - 1);
-
-	if (date.toDateString() === yesterday.toDateString()) {
-		return t('common.yesterday');
-	}
-
-	return date.toLocaleDateString('en-US', {
-		day: '2-digit',
-		month: 'short',
-		year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
-	});
-};
-
-function formatLastActive(timestamp: any) {
-	if (!timestamp) return "";
-
-	const lastActiveDate = new Date(timestamp);
-	const now = new Date();
-
-	const diffMs = now.getTime() - lastActiveDate.getTime();
-	const diffSec = Math.floor(diffMs / 1000);
-	const diffMin = Math.floor(diffSec / 60);
-	const diffHours = Math.floor(diffMin / 60);
-	const diffDays = Math.floor(diffHours / 24);
-
-	if (diffMin < 2) {
-		return "active now";
-	} else if (diffMin < 60) {
-		return `active ${diffMin} min${diffMin > 1 ? "s" : ""} ago`;
-	} else if (diffHours < 24) {
-		return `active ${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
-	} else if (diffDays < 7) {
-		return `active ${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
-	} else {
-		return `last seen on ${lastActiveDate.toLocaleDateString()} at ${lastActiveDate.toLocaleTimeString()}`;
-	}
-}
-
-const handleImageIconClick = () => {
-	if (fileInputRef.current) {
-		fileInputRef.current.click();
-	}
-};
-
-const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-	const file = event.target.files?.[0];
-	if (file) {
-		// Validate file type
-		if (!file.type.startsWith('image/')) {
-			console.error('Selected file is not an image');
-			return;
+	const handleImageIconClick = () => {
+		if (fileInputRef.current) {
+			fileInputRef.current.click();
 		}
+	};
 
-		// Validate file size (max 10MB)
-		if (file.size > 10 * 1024 * 1024) {
-			console.error('File size exceeds 10MB limit');
-			return;
+	const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+		const file = event.target.files?.[0];
+		if (file) {
+			// Validate file type
+			if (!file.type.startsWith('image/')) {
+				console.error('Selected file is not an image');
+				return;
+			}
+
+			// Validate file size (max 10MB)
+			if (file.size > 10 * 1024 * 1024) {
+				console.error('File size exceeds 10MB limit');
+				return;
+			}
+
+			// Set flag to trigger scroll to bottom
+			userSentMessageRef.current = true;
+			onImageUpload(file);
 		}
+		// Reset the input value
+		event.target.value = '';
+	};
 
-		// Set flag to trigger scroll to bottom
-		userSentMessageRef.current = true;
-		onImageUpload(file);
+	const handleEmojiClick = (emojiData: EmojiClickData) => {
+		onNewMessageChange(newMessage + emojiData.emoji);
+		setShowEmojiPicker(false);
+	};
+
+	const toggleEmojiPicker = () => {
+		setShowEmojiPicker(!showEmojiPicker);
+	};
+
+	function renderMessageWithLinks(text: string) {
+		// Match URLs like http:// or https://
+		const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+		// Split text by URLs, keeping them as separate parts
+		const parts = text.split(urlRegex);
+
+		return parts.map((part, i) => {
+			if (urlRegex.test(part)) {
+				return (
+					<a
+						key={i}
+						href={part}
+						target="_blank"
+						rel="noopener noreferrer"
+						className="text-indigo-400 hover:text-indigo-300 underline break-all"
+					>
+						{part}
+					</a>
+				);
+			}
+			return <span key={i}>{part}</span>;
+		});
 	}
-	// Reset the input value
-	event.target.value = '';
-};
-
-const handleEmojiClick = (emojiData: EmojiClickData) => {
-	onNewMessageChange(newMessage + emojiData.emoji);
-	setShowEmojiPicker(false);
-};
-
-const toggleEmojiPicker = () => {
-	setShowEmojiPicker(!showEmojiPicker);
-};
-
-  function renderMessageWithLinks(text: string) {
-  // Match URLs like http:// or https://
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
-
-  // Split text by URLs, keeping them as separate parts
-  const parts = text.split(urlRegex);
-
-  return parts.map((part, i) => {
-    if (urlRegex.test(part)) {
-      return (
-        <a
-          key={i}
-          href={part}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-indigo-400 hover:text-indigo-300 underline break-all"
-        >
-          {part}
-        </a>
-      );
-    }
-    return <span key={i}>{part}</span>;
-  });
-}
 
 
 	if (!selectedChat) {
@@ -481,7 +481,7 @@ const toggleEmojiPicker = () => {
 		);
 	}
 
- 
+
 
 	return (
 		<div className={`${isMobile ? (selectedChatOnMobile ? 'h-[calc(100vh-125px)]' : 'hidden') : 'col-span-8'} flex flex-col overflow-hidden`}>
@@ -539,7 +539,7 @@ const toggleEmojiPicker = () => {
 							)}
 							{selectedChat.type === 'group' && (
 								<p className="text-[11px] md:text-xs text-gray-400 truncate leading-tight mt-0.5">
-									{roomDetails?.member_count || 0} members
+									{roomDetails?.whatsub_room_user_mappings?.length || 0} members
 								</p>
 							)}
 						</div>
@@ -630,10 +630,10 @@ const toggleEmojiPicker = () => {
 							const showDate = index === 0 ||
 								new Date(messages[index - 1].created_at).toDateString() !==
 								new Date(message.created_at).toDateString();
-            const type = message.type;
-            
+							const type = message.type;
 
-            return (
+
+							return (
 								<div key={message.id} data-message-id={message.id}>
 									{showDate && (
 										<div className="text-center mb-6">
@@ -658,118 +658,115 @@ const toggleEmojiPicker = () => {
 										</div>
 									)}
 
-                  {type !== 'event' && (
-                    <div className={`flex mb-4 ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`flex items-end max-w-xs lg:max-w-md ${isCurrentUser ? 'flex-row-reverse' : ''}`}>
-                        {/* Avatar */}
-                        {!isCurrentUser && selectedChat.type === 'group' && (
-                          <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-500 p-0.5 flex-shrink-0 mr-2">
-                            <div className="w-full h-full rounded-full overflow-hidden bg-dark-600">
-                              <img
-                                src={
-                                  selectedChat.type === 'group'
-                                    ? selectedChat.room_dp
-                                    : selectedChat.whatsub_room_user_mappings[0]?.auth_fullname?.dp
-                                }
-                                alt=""
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                          </div>
-                        )}
-                  
-                        {/* Bubble */}
-                        <div className="relative">
-                          <div
-                            className={`px-4 py-2 rounded-2xl shadow-sm ${
-                              isCurrentUser
-                                ? 'bg-indigo-500 text-white rounded-br-md'
-                                : `bg-dark-400 text-gray-100 rounded-bl-md ${
-                                    !message.is_seen && !isCurrentUser ? 'ring-2 ring-orange-500/50' : ''
-                                  }`
-                            }`}
-                          >
-                            {/* Sender name inside bubble (WhatsApp style) */}
-                            {!isCurrentUser && selectedChat?.type === 'group' && (
-                              <div className="text-xs font-semibold text-indigo-400 mb-1">
-                                {message?.from_user_fullname?.fullname || 'Anonymous'}
-                              </div>
-                            )}
-                  
-                            {/* Message content */}
-                            {type === 'loading' && (
-                              <div className="flex items-center space-x-2">
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
-                                <span className="text-sm">{message.message}</span>
-                              </div>
-                            )}
-                  
-                            {type === 'error' && (
-                              <div className="text-red-400 text-sm">{message.message}</div>
-                            )}
-                  
-                            {type === 'image' && (
-                              <div className="max-w-xs">
-                                <img
-                                  src={message.message}
-                                  alt="Shared image"
-                                  className="w-full h-auto rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                                  style={{ maxWidth: '300px', maxHeight: '300px', objectFit: 'contain' }}
-                                  onClick={() => window.open(message.message, '_blank')}
-                                  onError={(e) => {
-                                    e.currentTarget.style.display = 'none';
-                                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                                  }}
-                                />
-                                <div className="hidden bg-red-500/10 border border-red-500/20 rounded p-2 text-red-400 text-xs">
-                                  Failed to load image
-                                </div>
-                              </div>
-                            )}
-                  
-                            {type === 'text' && (
-                              <div className="space-y-2">
-                                <p className="text-sm leading-relaxed break-words">{renderMessageWithLinks(message.message)}</p>
-                            
-                                {/* If message has a clickable link */}
-                                {message.click_type &&
-                                  [
-                                    'internal',
-                                    'internal_nac',
-                                    'internal_nab',
-                                    'internal_nab_nac',
-                                    'external',
-                                    'external_nac',
-                                    'json',
-                                    'youtube'
-                                  ].includes(message.click_type) &&
-                                  message.click_data?.url && (
-                                  <button
-                                    onClick={() => window.open(message.click_data.url, '_blank')}
-                                    className="w-full flex items-center justify-center gap-2 bg-dark-500/60 hover:bg-dark-500 text-indigo-400 hover:text-indigo-300 font-medium text-sm py-2 rounded-xl border border-dark-300/40 transition-all"
-                                  >
-                                    <ExternalLink className="w-4 h-4" />
-                                    <span>{message.click_text || 'Open'}</span>
-                                  </button>
-                                  )}
-                              </div>
-                            )}  
-                          </div>
-                  
-                          {/* Time and status */}
-                          <div
-                            className={`flex items-center mt-1 ${
-                              isCurrentUser ? 'justify-end' : 'justify-start'
-                            }`}
-                          >
-                            <span className="text-xs text-gray-500">
-                              {formatTime(message.created_at)}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}							
+									{type !== 'event' && (
+										<div className={`flex mb-4 ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
+											<div className={`flex items-end max-w-xs lg:max-w-md ${isCurrentUser ? 'flex-row-reverse' : ''}`}>
+												{/* Avatar */}
+												{!isCurrentUser && selectedChat.type === 'group' && (
+													<div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-500 p-0.5 flex-shrink-0 mr-2">
+														<div className="w-full h-full rounded-full overflow-hidden bg-dark-600">
+															<img
+																src={
+																	selectedChat.type === 'group'
+																		? selectedChat.room_dp
+																		: selectedChat.whatsub_room_user_mappings[0]?.auth_fullname?.dp
+																}
+																alt=""
+																className="w-full h-full object-cover"
+															/>
+														</div>
+													</div>
+												)}
+
+												{/* Bubble */}
+												<div className="relative">
+													<div
+														className={`px-4 py-2 rounded-2xl shadow-sm ${isCurrentUser
+																? 'bg-indigo-500 text-white rounded-br-md'
+																: `bg-dark-400 text-gray-100 rounded-bl-md ${!message.is_seen && !isCurrentUser ? 'ring-2 ring-orange-500/50' : ''
+																}`
+															}`}
+													>
+														{/* Sender name inside bubble (WhatsApp style) */}
+														{!isCurrentUser && selectedChat?.type === 'group' && (
+															<div className="text-xs font-semibold text-indigo-400 mb-1">
+																{message?.from_user_fullname?.fullname || 'Anonymous'}
+															</div>
+														)}
+
+														{/* Message content */}
+														{type === 'loading' && (
+															<div className="flex items-center space-x-2">
+																<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+																<span className="text-sm">{message.message}</span>
+															</div>
+														)}
+
+														{type === 'error' && (
+															<div className="text-red-400 text-sm">{message.message}</div>
+														)}
+
+														{type === 'image' && (
+															<div className="max-w-xs">
+																<img
+																	src={message.message}
+																	alt="Shared image"
+																	className="w-full h-auto rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+																	style={{ maxWidth: '300px', maxHeight: '300px', objectFit: 'contain' }}
+																	onClick={() => window.open(message.message, '_blank')}
+																	onError={(e) => {
+																		e.currentTarget.style.display = 'none';
+																		e.currentTarget.nextElementSibling?.classList.remove('hidden');
+																	}}
+																/>
+																<div className="hidden bg-red-500/10 border border-red-500/20 rounded p-2 text-red-400 text-xs">
+																	Failed to load image
+																</div>
+															</div>
+														)}
+
+														{type === 'text' && (
+															<div className="space-y-2">
+																<p className="text-sm leading-relaxed break-words">{renderMessageWithLinks(message.message)}</p>
+
+																{/* If message has a clickable link */}
+																{message.click_type &&
+																	[
+																		'internal',
+																		'internal_nac',
+																		'internal_nab',
+																		'internal_nab_nac',
+																		'external',
+																		'external_nac',
+																		'json',
+																		'youtube'
+																	].includes(message.click_type) &&
+																	message.click_data?.url && (
+																		<button
+																			onClick={() => window.open(message.click_data.url, '_blank')}
+																			className="w-full flex items-center justify-center gap-2 bg-dark-500/60 hover:bg-dark-500 text-indigo-400 hover:text-indigo-300 font-medium text-sm py-2 rounded-xl border border-dark-300/40 transition-all"
+																		>
+																			<ExternalLink className="w-4 h-4" />
+																			<span>{message.click_text || 'Open'}</span>
+																		</button>
+																	)}
+															</div>
+														)}
+													</div>
+
+													{/* Time and status */}
+													<div
+														className={`flex items-center mt-1 ${isCurrentUser ? 'justify-end' : 'justify-start'
+															}`}
+													>
+														<span className="text-xs text-gray-500">
+															{formatTime(message.created_at)}
+														</span>
+													</div>
+												</div>
+											</div>
+										</div>
+									)}
 								</div>
 							);
 						})}
@@ -866,21 +863,21 @@ const toggleEmojiPicker = () => {
 					/>
 
 					{/* Send button (only shows when text is entered) */}
-				
-						<button
-							onClick={async () => {
-								userSentMessageRef.current = true;
-								await onSendMessage();
-							}}
-							disabled={isSending}
-							className={`${newMessage.trim() == ""? 'invisible': ''} flex-shrink-0 w-8 h-8 mb-0.5 rounded-full bg-indigo-500 hover:bg-indigo-600 flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed ml-1`}
-						>
-							{isSending ? (
-								<div className="animate-spin rounded-full h-3.5 w-3.5 border-t-2 border-b-2 border-white"></div>
-							) : (
-								<SendHorizontal className="h-4 w-4 text-white" />
-              )}
-						</button>  
+
+					<button
+						onClick={async () => {
+							userSentMessageRef.current = true;
+							await onSendMessage();
+						}}
+						disabled={isSending}
+						className={`${newMessage.trim() == "" ? 'invisible' : ''} flex-shrink-0 w-8 h-8 mb-0.5 rounded-full bg-indigo-500 hover:bg-indigo-600 flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed ml-1`}
+					>
+						{isSending ? (
+							<div className="animate-spin rounded-full h-3.5 w-3.5 border-t-2 border-b-2 border-white"></div>
+						) : (
+							<SendHorizontal className="h-4 w-4 text-white" />
+						)}
+					</button>
 				</div>
 			</div>
 		</div>

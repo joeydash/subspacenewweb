@@ -254,9 +254,9 @@ function FriendInfoModal({
 									</div>
 								) : (
 									<div className="pt-4">
-										<CallUI 
-											phoneNumber="+919182252115"
-											tokenId="65ad06a0-8289-4c45-87dd-a4221110b9d7"
+											<CallUI 
+												friendId={friendId}
+												friendName={friendName}
 											autoStart={true}
 											onCallEnd={() => setIsCallActive(false)}
 										/>

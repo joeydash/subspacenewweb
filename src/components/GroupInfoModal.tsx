@@ -14,7 +14,7 @@ import DeleteGroupConfirmationModal from './DeleteGroupConfirmationModal';
 import RemoveMemberConfirmationModal from './RemoveMemberConfirmationModal';
 import GroupDeleteRestrictionModal from './GroupDeleteRestrictionModal';
 import LeaveGroupRestrictionModal from './LeaveGroupRestrictionModal';
-import {toast} from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 
 interface GroupMember {
 	user_id: string;
@@ -104,7 +104,7 @@ const GroupInfoModal: React.FC<GroupInfoModalProps> = ({
 	const [currentUserMapping, setCurrentUserMapping] = useState<any>(null);
 	const [roomDetails, setRoomDetails] = useState<any>(null);
 	const [memberOptionsOpen, setMemberOptionsOpen] = useState<string | null>(null);
-  const [showRemoveMemberModal, setShowRemoveMemberModal] = useState<boolean>(false);
+	const [showRemoveMemberModal, setShowRemoveMemberModal] = useState<boolean>(false);
 	const [memberToRemove, setMemberToRemove] = useState<GroupMember | null>(null);
 	const [copiedLink, setCopiedLink] = useState(false);
 	const [isResettingLink, setIsResettingLink] = useState(false);
@@ -144,9 +144,9 @@ const GroupInfoModal: React.FC<GroupInfoModalProps> = ({
 	const fetchGroupDetails = async (showLoading: boolen = true) => {
 		if (!user?.auth_token || !groupId) return;
 
-    if (showLoading) {
-		  setIsLoading(true);
-    }
+		if (showLoading) {
+			setIsLoading(true);
+		}
 
 		setError(null);
 
@@ -272,7 +272,7 @@ const GroupInfoModal: React.FC<GroupInfoModalProps> = ({
 			}));
 
 			// Find current user's mapping
-			const userMapping = room.whatsub_room_user_mappings.find((mapping: any) => 
+			const userMapping = room.whatsub_room_user_mappings.find((mapping: any) =>
 				mapping.auth_fullname.id === user?.id
 			);
 			setCurrentUserMapping(userMapping);
@@ -289,9 +289,9 @@ const GroupInfoModal: React.FC<GroupInfoModalProps> = ({
 			console.error('Error fetching group details:', error);
 			setError('Failed to fetch group details');
 		} finally {
-      if (showLoading) {
-			  setIsLoading(false);
-      }
+			if (showLoading) {
+				setIsLoading(false);
+			}
 		}
 	};
 
@@ -399,47 +399,47 @@ const GroupInfoModal: React.FC<GroupInfoModalProps> = ({
 		setShowCallModal(true);
 	};
 
-  function diffInHoursFromNow(isoString) {
-    const givenDate = new Date(isoString);
-  
-    const now = new Date();
-    const diffMs = now - givenDate;
-    const diffHours = diffMs / (1000 * 60 * 60);
-  
-    return diffHours;
-}
+	function diffInHoursFromNow(isoString) {
+		const givenDate = new Date(isoString);
+
+		const now = new Date();
+		const diffMs = now - givenDate;
+		const diffHours = diffMs / (1000 * 60 * 60);
+
+		return diffHours;
+	}
 
 
 	const handleLeaveGroup = () => {
-			// Check if user has been in the group for at least 6 hours
-			const currentUserMember = groupMembers.find(member => member.user_id === user?.id);
-			if (currentUserMember && currentUserMember.joined_at) {
-				const hoursSinceJoined = diffInHoursFromNow(currentUserMember.joined_at);
+		// Check if user has been in the group for at least 6 hours
+		const currentUserMember = groupMembers.find(member => member.user_id === user?.id);
+		if (currentUserMember && currentUserMember.joined_at) {
+			const hoursSinceJoined = diffInHoursFromNow(currentUserMember.joined_at);
 
-				if (hoursSinceJoined < 6) {
-					// User hasn't been in the group for 6 hours yet
-					const hoursRemaining = 6 - hoursSinceJoined;
-					setHoursRemainingToLeave(hoursRemaining);
-					setShowLeaveRestrictionModal(true);
-					return;
-				}
+			if (hoursSinceJoined < 6) {
+				// User hasn't been in the group for 6 hours yet
+				const hoursRemaining = 6 - hoursSinceJoined;
+				setHoursRemainingToLeave(hoursRemaining);
+				setShowLeaveRestrictionModal(true);
+				return;
 			}
+		}
 
-			// Member wants to leave group
-			setShowLeaveModal(true);
+		// Member wants to leave group
+		setShowLeaveModal(true);
 	};
 
-  const handleDeleteGroup = () => {
-    	// Admin wants to delete group - check if there are other members
-			const otherMembers = groupMembers.filter(member => member.user_id !== user?.id);
-			if (otherMembers.length > 0) {
-				// Show restriction modal if there are other members
-				setShowDeleteRestrictionModal(true);
-			} else {
-				// Show delete confirmation if no other members
-				setShowDeleteConfirmation(true);
-			}
-  }
+	const handleDeleteGroup = () => {
+		// Admin wants to delete group - check if there are other members
+		const otherMembers = groupMembers.filter(member => member.user_id !== user?.id);
+		if (otherMembers.length > 0) {
+			// Show restriction modal if there are other members
+			setShowDeleteRestrictionModal(true);
+		} else {
+			// Show delete confirmation if no other members
+			setShowDeleteConfirmation(true);
+		}
+	}
 
 	const handleInfoMarkAsRead = () => {
 		// Update local state and go back to main view
@@ -558,9 +558,9 @@ const GroupInfoModal: React.FC<GroupInfoModalProps> = ({
 		}
 	};
 
-  const togglePublicGroupStatus = async (isPublic: boolean) => {
-    try {
-      const res = await fetch('https://db.subspace.money/v1/graphql', {
+	const togglePublicGroupStatus = async (isPublic: boolean) => {
+		try {
+			const res = await fetch('https://db.subspace.money/v1/graphql', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -585,21 +585,21 @@ const GroupInfoModal: React.FC<GroupInfoModalProps> = ({
 				})
 			});
 
-      const data = await res.json();
+			const data = await res.json();
 
-      if (data?.data?.update_whatsub_rooms.affected_rows > 0) {
-        fetchGroupDetails(false);
+			if (data?.data?.update_whatsub_rooms.affected_rows > 0) {
+				fetchGroupDetails(false);
 
-        if (isPublic) {
-          toast.success('Your group will be made public within 24 hrs after verification.')
-        }
-      } else {
-        toast.error('Failed to update group public status');
-      }
-    } catch (e) {
-      toast.error('Failed to make public: ', e.message);
-    }
-  }
+				if (isPublic) {
+					toast.success('Your group will be made public within 24 hrs after verification.')
+				}
+			} else {
+				toast.error('Failed to update group public status');
+			}
+		} catch (e) {
+			toast.error('Failed to make public: ', e.message);
+		}
+	}
 
 	if (!isOpen) return null;
 
@@ -607,7 +607,7 @@ const GroupInfoModal: React.FC<GroupInfoModalProps> = ({
 		<>
 			<div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4">
 				<div
-					className="bg-dark-500 rounded-2xl w-full max-w-lg max-h-[95vh] sm:max-h-[90vh] overflow-y-auto border border-gray-700 shadow-2xl"
+					className="bg-dark-500 rounded-2xl w-full max-w-lg max-h-[95vh] sm:max-h-[90vh] overflow-y-auto small-scrollbar border border-gray-700 shadow-2xl"
 					onScroll={activeView == 'transactions' ? handleTransactionsScroll : undefined}
 				>
 					{/* Header */}
@@ -625,46 +625,46 @@ const GroupInfoModal: React.FC<GroupInfoModalProps> = ({
 						</div>
 
 						{/* Header content */}
-						<div className="absolute top-1 left-2 sm:left-4 right-2 sm:right-4 flex items-center justify-between">
-							{activeView !== 'main' ? (
-								<button
-									onClick={handleBackToMain}
-									className="text-white hover:bg-white/20 transition-colors p-2 rounded-lg backdrop-blur-sm"
-								>
-									<ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
-								</button>
-							) : (
+						<div className="absolute top-2 left-2 sm:left-4 right-2 sm:right-4 flex items-center justify-between gap-2">
+							<div className="flex items-center gap-2 sm:gap-3 min-w-0">
+								{activeView !== 'main' ? (
+									<button
+										onClick={handleBackToMain}
+										className="w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0 flex items-center justify-center text-white hover:bg-white/20 transition-colors rounded-lg backdrop-blur-sm"
+									>
+										<ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
+									</button>
+								) : (
+									<div className="w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0" aria-hidden />
+								)}
+								<div className="flex items-center gap-2 sm:gap-3 min-w-0">
+									<div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-white/90 p-2 shadow-lg">
+										<img
+											src={groupInfo?.room_dp || groupImage || '/default-group.png'}
+											alt={groupInfo?.name || groupName}
+											className="w-full h-full object-contain"
+										/>
+									</div>
+									<div className="text-white min-w-0">
+										<h2 className="text-lg sm:text-xl font-bold leading-tight truncate" title={groupInfo?.name || groupName}>{groupInfo?.name || groupName}</h2>
+										{groupInfo?.service_name && (
+											<p className="text-xs sm:text-sm opacity-90">{groupInfo.service_name} - {groupInfo.plan_name}</p>
+										)}
+									</div>
+								</div>
+							</div>
+							<div className="flex items-center gap-2">
+								{roomDetails?.is_verified && (
+									<div className="bg-green-500/20 backdrop-blur-sm text-green-400 px-3 py-1 rounded-full text-sm font-medium border border-green-500/30">
+										✓ Verified Group
+									</div>
+								)}
 								<button
 									onClick={onClose}
-									className="text-white hover:bg-white/20 transition-colors p-2 rounded-lg backdrop-blur-sm"
+									className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-white hover:bg-white/20 transition-colors rounded-lg backdrop-blur-sm"
 								>
 									<X className="h-5 w-5 sm:h-6 sm:w-6" />
 								</button>
-							)}
-
-							{roomDetails?.is_verified && (
-								<div className="bg-green-500/20 backdrop-blur-sm text-green-400 px-3 py-1 rounded-full text-sm font-medium border border-green-500/30">
-									✓ Verified Group
-								</div>
-							)}
-						</div>
-
-						{/* Group info overlay */}
-						<div className="absolute bottom-2 sm:bottom-4 left-2 sm:left-4 right-2 sm:right-4">
-							<div className="flex items-center gap-2 sm:gap-3">
-								<div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-white p-2 shadow-lg">
-									<img
-										src={groupInfo?.room_dp || groupImage || '/default-group.png'}
-										alt={groupInfo?.name || groupName}
-										className="w-full h-full object-contain"
-									/>
-								</div>
-								<div className="flex-1 text-white">
-									<h2 className="text-lg sm:text-xl font-bold">{groupInfo?.name || groupName}</h2>
-									{groupInfo?.service_name && (
-										<p className="text-xs sm:text-sm opacity-90">{groupInfo.service_name} - {groupInfo.plan_name}</p>
-									)}
-								</div>
 							</div>
 						</div>
 					</div>
@@ -706,8 +706,8 @@ const GroupInfoModal: React.FC<GroupInfoModalProps> = ({
 												</div>
 												<div className="text-gray-400 text-xs sm:text-sm mb-2">
 													{!groupInfo?.number_of_ratings && 'No Ratings'}
-                          {groupInfo?.number_of_ratings < 1000 &&  (groupInfo?.number_of_ratings + ' Ratings')}
-                          {groupInfo?.number_of_ratings >= 1000 &&  ((groupInfo?.number_of_ratings / 1000) + 'K + Ratings')}
+													{groupInfo?.number_of_ratings < 1000 && (groupInfo?.number_of_ratings + ' Ratings')}
+													{groupInfo?.number_of_ratings >= 1000 && ((groupInfo?.number_of_ratings / 1000) + 'K + Ratings')}
 												</div>
 												{/* Only show rating option if current user is not the admin */}
 												{groupInfo?.admin?.auth_fullname?.id !== user?.id && (
@@ -752,7 +752,7 @@ const GroupInfoModal: React.FC<GroupInfoModalProps> = ({
 															</div>
 															<ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 group-hover:text-white transition-colors" />
 														</button>
-                            {/*
+														{/*
 														<button
 															className="w-full flex items-center justify-between p-3 sm:p-3.5 bg-dark-400 hover:bg-dark-300 rounded-lg transition-colors group"
 														>
@@ -774,16 +774,16 @@ const GroupInfoModal: React.FC<GroupInfoModalProps> = ({
 															</div>
 															<ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 group-hover:text-white transition-colors" />
 														</button>
-															<button
-																onClick={() => setActiveView('make-public')}
-																className="w-full flex items-center justify-between p-3 sm:p-3.5 bg-dark-400 hover:bg-dark-300 rounded-lg transition-colors group"
-															>
-																<div className="flex items-center gap-2 sm:gap-3">
-																	<FileImage className="h-4 w-4 sm:h-5 sm:w-5 text-purple-400" />
-																	<span className="text-sm sm:text-base font-medium">Verify Expiry</span>
-																</div>
-																<ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 group-hover:text-white transition-colors" />
-															</button>
+														<button
+															onClick={() => setActiveView('make-public')}
+															className="w-full flex items-center justify-between p-3 sm:p-3.5 bg-dark-400 hover:bg-dark-300 rounded-lg transition-colors group"
+														>
+															<div className="flex items-center gap-2 sm:gap-3">
+																<FileImage className="h-4 w-4 sm:h-5 sm:w-5 text-purple-400" />
+																<span className="text-sm sm:text-base font-medium">Verify Expiry</span>
+															</div>
+															<ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 group-hover:text-white transition-colors" />
+														</button>
 														<button
 															onClick={handleTransactionsClick}
 															className="w-full flex items-center justify-between p-3 sm:p-3.5 bg-dark-400 hover:bg-dark-300 rounded-lg transition-colors group"
@@ -806,22 +806,22 @@ const GroupInfoModal: React.FC<GroupInfoModalProps> = ({
 															<ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 group-hover:text-white transition-colors" />
 														</button>
 
-                            <div className="space-y-1 px-2">
-                  								<div className="flex items-center justify-between pt-2">
-                  									<h4 className="font-medium text-white text-base">Public Group</h4>
-                  									<button
-                                      onClick={() => togglePublicGroupStatus(!roomDetails?.is_public)}
-                  										className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-dark-600 ${roomDetails?.is_public ? 'bg-indigo-600' : 'bg-gray-600'}`}
-                  									>
-                  										<span
-                  											className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${roomDetails?.is_public ? 'translate-x-6' : 'translate-x-1'}`}
-                  										/>
-                  									</button>
-                  								</div>
-                  							<p className="text-xs sm:text-sm text-gray-400">
-                                  Making it public will let others to join your group.
-                  							</p>
-              							</div>
+														<div className="space-y-1 px-2">
+															<div className="flex items-center justify-between pt-2">
+																<h4 className="font-medium text-white text-base">Public Group</h4>
+																<button
+																	onClick={() => togglePublicGroupStatus(!roomDetails?.is_public)}
+																	className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-dark-600 ${roomDetails?.is_public ? 'bg-indigo-600' : 'bg-gray-600'}`}
+																>
+																	<span
+																		className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${roomDetails?.is_public ? 'translate-x-6' : 'translate-x-1'}`}
+																	/>
+																</button>
+															</div>
+															<p className="text-xs sm:text-sm text-gray-400">
+																Making it public will let others to join your group.
+															</p>
+														</div>
 													</>
 												)}
 
@@ -962,7 +962,7 @@ const GroupInfoModal: React.FC<GroupInfoModalProps> = ({
 											<p className="text-gray-400">
 												Anyone with SubSpace can use this link to join this group.
 											</p>
-											
+
 											{/* Link Display */}
 											<div className="bg-dark-400 rounded-lg p-4 flex items-center gap-2 sm:gap-3">
 												<div className="w-8 h-8 sm:w-10 sm:h-10 bg-indigo-500 rounded-full flex items-center justify-center">
@@ -1052,7 +1052,7 @@ const GroupInfoModal: React.FC<GroupInfoModalProps> = ({
 											<p className="text-gray-400">
 												Anyone with SubSpace can use this link to join this group.
 											</p>
-											
+
 											{/* Link Display */}
 											<div className="bg-dark-400 rounded-lg p-4 flex items-center gap-2 sm:gap-3">
 												<div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-500 rounded-full flex items-center justify-center">
@@ -1182,125 +1182,125 @@ const GroupInfoModal: React.FC<GroupInfoModalProps> = ({
 								</div>
 							)}
 
-						<div className="border-t border-gray-700 p-3 sm:p-4">
-							<h3 className="text-base sm:text-lg font-bold text-gray-400 mb-3 sm:mb-4">Members</h3>
+							<div className="border-t border-gray-700 p-3 sm:p-4">
+								<h3 className="text-base sm:text-lg font-bold text-gray-400 mb-3 sm:mb-4">Members</h3>
 
-							{isLoading ? (
-								<div className="flex justify-center py-4">
-									<div className="animate-spin rounded-full h-5 w-5 sm:h-6 sm:w-6 border-t-2 border-b-2 border-indigo-500"></div>
-								</div>
-							) : (
-								<div className="space-y-2 sm:space-y-3">
-									{groupMembers.map((member) => (
-										<div 
-											key={member.user_id}
-											className="relative flex items-center gap-3 p-3 bg-dark-400 rounded-lg"
-										>
-											<div 
-												className="relative cursor-pointer flex items-center gap-3 flex-1"
-												onClick={() => setSelectedMemberForInfo(member)}
+								{isLoading ? (
+									<div className="flex justify-center py-4">
+										<div className="animate-spin rounded-full h-5 w-5 sm:h-6 sm:w-6 border-t-2 border-b-2 border-indigo-500"></div>
+									</div>
+								) : (
+									<div className="space-y-2 sm:space-y-3">
+										{groupMembers.map((member) => (
+											<div
+												key={member.user_id}
+												className="relative flex items-center gap-3 p-3 bg-dark-400 rounded-lg"
 											>
-												<div className="relative">
-													<div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-500 p-0.5">
-														<div className="w-full h-full rounded-full overflow-hidden bg-dark-600">
-															{member.dp ? (
-																<img
-																	src={member.dp}
-																	alt={member.fullname}
-																	className="w-full h-full object-cover"
-																/>
-															) : (
-																<div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
-																	<span className="text-white text-base sm:text-lg font-bold">
-																		{member.fullname.charAt(0).toUpperCase()}
-																	</span>
-																</div>
+												<div
+													className="relative cursor-pointer flex items-center gap-3 flex-1"
+													onClick={() => setSelectedMemberForInfo(member)}
+												>
+													<div className="relative">
+														<div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-500 p-0.5">
+															<div className="w-full h-full rounded-full overflow-hidden bg-dark-600">
+																{member.dp ? (
+																	<img
+																		src={member.dp}
+																		alt={member.fullname}
+																		className="w-full h-full object-cover"
+																	/>
+																) : (
+																	<div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
+																		<span className="text-white text-base sm:text-lg font-bold">
+																			{member.fullname.charAt(0).toUpperCase()}
+																		</span>
+																	</div>
+																)}
+															</div>
+														</div>
+														{member.is_admin && (
+															<div className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-yellow-500 rounded-full flex items-center justify-center">
+																<Crown className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
+															</div>
+														)}
+													</div>
+
+													<div className="flex-1">
+														<div className="flex items-center gap-2">
+															<span className="text-sm sm:text-base font-medium text-white">{member.fullname}</span>
+															{member.is_admin && (
+																<span className="text-[10px] sm:text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full">
+																	Admin
+																</span>
+															)}
+															{member.user_id === user?.id && (
+																<span className="text-[10px] sm:text-xs bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-full">
+																	You
+																</span>
 															)}
 														</div>
-													</div>
-													{member.is_admin && (
-														<div className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-yellow-500 rounded-full flex items-center justify-center">
-															<Crown className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
+														<div className="text-xs sm:text-sm text-gray-400">
+															{member.is_admin ? 'Created' : 'Joined'} on {formatDate(member.joined_at)}
 														</div>
-													)}
+														{member.average_rating > 0 && (
+															<div className="flex items-center gap-1 mt-1">
+																<Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-yellow-400 fill-current" />
+																<span className="text-[10px] sm:text-xs text-yellow-400">{member.average_rating.toFixed(1)}</span>
+																<span className="text-[10px] sm:text-xs text-gray-400">({member.number_of_ratings})</span>
+															</div>
+														)}
+													</div>
 												</div>
 
-												<div className="flex-1">
-													<div className="flex items-center gap-2">
-														<span className="text-sm sm:text-base font-medium text-white">{member.fullname}</span>
-														{member.is_admin && (
-															<span className="text-[10px] sm:text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full">
-																Admin
-															</span>
-														)}
-														{member.user_id === user?.id && (
-															<span className="text-[10px] sm:text-xs bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-full">
-																You
-															</span>
+												{/* Three dots menu - Only show for admin and not for the admin member themselves */}
+												{groupInfo?.admin?.auth_fullname?.id === user?.id && member.user_id !== user?.id && (
+													<div className="relative">
+														<button
+															onClick={(e) => {
+																e.stopPropagation();
+																setMemberOptionsOpen(memberOptionsOpen === member.user_id ? null : member.user_id);
+															}}
+															className="p-2 text-gray-400 hover:text-white hover:bg-dark-300 rounded-lg transition-colors"
+														>
+															<EllipsisVertical className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+														</button>
+
+														{/* Options Menu */}
+														{memberOptionsOpen === member.user_id && (
+															<div className="absolute right-0 top-full mt-1 bg-dark-300 border border-gray-600 rounded-lg shadow-lg z-10 min-w-[120px]">
+																<button
+																	onClick={(e) => {
+																		e.stopPropagation();
+																		e.preventDefault();
+																		setMemberOptionsOpen(null);
+																		setSelectedMemberForRating(member);
+																		setShowRatingModal(true);
+																	}}
+																	className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-dark-200 hover:text-white transition-colors rounded-t-lg"
+																>
+																	Rate
+																</button>
+																<button
+																	onClick={(e) => {
+																		e.stopPropagation();
+																		e.preventDefault();
+																		setMemberOptionsOpen(null);
+																		setMemberToRemove(member);
+																		setShowRemoveMemberModal(true);
+																	}}
+																	className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors rounded-b-lg"
+																>
+																	Remove
+																</button>
+															</div>
 														)}
 													</div>
-													<div className="text-xs sm:text-sm text-gray-400">
-														{member.is_admin ? 'Created' : 'Joined'} on {formatDate(member.joined_at)}
-													</div>
-													{member.average_rating > 0 && (
-														<div className="flex items-center gap-1 mt-1">
-															<Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-yellow-400 fill-current" />
-															<span className="text-[10px] sm:text-xs text-yellow-400">{member.average_rating.toFixed(1)}</span>
-															<span className="text-[10px] sm:text-xs text-gray-400">({member.number_of_ratings})</span>
-														</div>
-													)}
-												</div>
+												)}
 											</div>
-
-											{/* Three dots menu - Only show for admin and not for the admin member themselves */}
-											{groupInfo?.admin?.auth_fullname?.id === user?.id && member.user_id !== user?.id && (
-												<div className="relative">
-													<button
-														onClick={(e) => {
-															e.stopPropagation();
-															setMemberOptionsOpen(memberOptionsOpen === member.user_id ? null : member.user_id);
-														}}
-														className="p-2 text-gray-400 hover:text-white hover:bg-dark-300 rounded-lg transition-colors"
-													>
-														<EllipsisVertical className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-													</button>
-													
-													{/* Options Menu */}
-													{memberOptionsOpen === member.user_id && (
-														<div className="absolute right-0 top-full mt-1 bg-dark-300 border border-gray-600 rounded-lg shadow-lg z-10 min-w-[120px]">
-															<button
-																onClick={(e) => {
-																	e.stopPropagation();
-                                  e.preventDefault();
-																	setMemberOptionsOpen(null);
-																	setSelectedMemberForRating(member);
-																	setShowRatingModal(true);
-																}}
-																className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-dark-200 hover:text-white transition-colors rounded-t-lg"
-															>
-																Rate
-															</button>
-															<button
-																onClick={(e) => {
-																	e.stopPropagation();
-                                  e.preventDefault();
-																	setMemberOptionsOpen(null);
-																	setMemberToRemove(member);
-																	setShowRemoveMemberModal(true);
-																}}
-																className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors rounded-b-lg"
-															>
-																Remove
-															</button>
-														</div>
-													)}
-												</div>
-											)}
-										</div>
-									))}
-								</div>
-							)}
-						</div>
+										))}
+									</div>
+								)}
+							</div>
 						</>
 					)}
 
@@ -1370,7 +1370,7 @@ const GroupInfoModal: React.FC<GroupInfoModalProps> = ({
 				/>
 			)}
 
-		{/* Leave Group Modal */}
+			{/* Leave Group Modal */}
 			<LeaveGroupModal
 				isOpen={showLeaveModal}
 				onClose={() => setShowLeaveModal(false)}

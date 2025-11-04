@@ -244,7 +244,7 @@ export function CallFromUIModal({ isOpen, onClose, initialPhoneNumber = '' }: Ca
 			localStorage.setItem(LAST_CALLED_NUMBER_KEY, phoneNumber);
 			localStorage.setItem(LAST_TOKEN_ID_KEY, tokenId);
 
-			const response = await fetch('https://db.vocallabs.ai/v1/graphql', {
+			const response = await fetch('https://db.subspace.money/v1/graphql', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -252,33 +252,36 @@ export function CallFromUIModal({ isOpen, onClose, initialPhoneNumber = '' }: Ca
 				},
 				body: JSON.stringify({
 					query: `
-						query MakeDirectCall($number:String!,$client_token_id:uuid!){
-							VocallabsCreateDirectCall(request:{number:$number,client_token_id:$client_token_id}){
-								status
-								call_id
+						mutation CreateDirectCall($user_id: uuid!) {
+							createDirectCall(request: {user_id: $user_id}) {
+								success
 								message
-								websocket
+								data
 							}
 						}
 					`,
 					variables: {
-						number: phoneNumber,
-						client_token_id: '65ad06a0-8289-4c45-87dd-a4221110b9d7'
+						user_id: user.id
 					}
 				})
 			});
 
 			const result = await response.json();
-			const { VocallabsCreateDirectCall } = result.data;
+			const { createDirectCall } = result.data;
 
-			if (!VocallabsCreateDirectCall?.websocket) {
-				throw new Error(VocallabsCreateDirectCall?.message || 'Failed to get WebSocket URL');
+			if (!createDirectCall?.success) {
+				throw new Error(createDirectCall?.message || 'Failed to create call');
 			}
 
-			setCallId(VocallabsCreateDirectCall.call_id);
-			addLog(`Call initiated with ID: ${VocallabsCreateDirectCall.call_id}`, 'success');
+			const callData = createDirectCall.data;
+			if (!callData?.websocket) {
+				throw new Error('Failed to get WebSocket URL');
+			}
 
-			initializeAudioClient(VocallabsCreateDirectCall.websocket);
+			setCallId(callData.call_id);
+			addLog(`Call initiated with ID: ${callData.call_id}`, 'success');
+
+			initializeAudioClient(callData.websocket);
 
 		} catch (err: any) {
 			console.error('Error making call:', err);

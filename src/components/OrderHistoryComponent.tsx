@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Package,  Clock, Copy, CheckCircle, ChevronDown } from 'lucide-react';
+import { Package,  Clock, Copy, CheckCircle, ChevronDown, RefreshCw } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import OrderHistorySkeleton from '../skeletons/OrderHistorySkeleton';
 import { useOrders } from '../hooks/orders/useOrders';
@@ -10,7 +10,7 @@ const OrderHistoryComponent: React.FC = () => {
 	const [copiedCode, setCopiedCode] = useState<string | null>(null);
 	const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
 
-	const { data: orders = [], isLoading, error } = useOrders({
+	const { data: orders = [], isLoading, error, refetch, isRefetching } = useOrders({
 		userId: user?.id || '',
 		authToken: user?.auth_token || ''
 	});
@@ -78,6 +78,14 @@ const OrderHistoryComponent: React.FC = () => {
 						</h2>
 						<p className="text-gray-400">Your purchase history and voucher codes</p>
 					</div>
+					<button
+						onClick={() => refetch()}
+						disabled={isRefetching}
+						className="p-2 rounded-lg bg-dark-400 hover:bg-dark-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+						title="Refresh orders"
+					>
+						<RefreshCw className={`h-5 w-5 text-gray-400 ${isRefetching ? 'animate-spin' : ''}`} />
+					</button>
 				</div>
 				<div className="bg-red-500/10 border border-red-500/20 rounded-xl p-6">
 					<p className="text-red-400">{error.message}</p>
@@ -89,12 +97,22 @@ const OrderHistoryComponent: React.FC = () => {
 	return (
 		<div className="space-y-6">
 			{/* Header */}
-			<div>
-				<h2 className="text-xl md:text-2xl font-bold mb-2 flex items-center gap-3">
-					<Package className="h-6 w-6 text-indigo-400" />
-					Order History
-				</h2>
-				<p className="text-gray-400">Your purchase history and voucher codes</p>
+			<div className="flex items-center justify-between">
+				<div>
+					<h2 className="text-xl md:text-2xl font-bold mb-2 flex items-center gap-3">
+						<Package className="h-6 w-6 text-indigo-400" />
+						Order History
+					</h2>
+					<p className="text-gray-400">Your purchase history and voucher codes</p>
+				</div>
+				<button
+					onClick={() => refetch()}
+					disabled={isRefetching}
+					className="p-2 rounded-lg bg-dark-400 hover:bg-dark-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+					title="Refresh orders"
+				>
+					<RefreshCw className={`h-5 w-5 text-gray-400 ${isRefetching ? 'animate-spin' : ''}`} />
+				</button>
 			</div>
 
 			{/* Loading State */}
