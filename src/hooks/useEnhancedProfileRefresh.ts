@@ -31,6 +31,7 @@ export const useEnhancedProfileRefresh = () => {
           unlocked_amount: profileData.unlocked_amount,
           kycStatus: profileData.kycStatus,
           isBlocked: profileData.isBlocked,
+          mailPrefix: profileData.mailPrefix,
         });
        // console.log('✅ Profile data refreshed successfully');
       }

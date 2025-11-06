@@ -1,5 +1,5 @@
 import React from 'react';
-import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
+import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 
 interface FavoriteBrandsSkeletonProps {
@@ -8,7 +8,6 @@ interface FavoriteBrandsSkeletonProps {
 
 const FavoriteBrandsSkeleton: React.FC<FavoriteBrandsSkeletonProps> = ({ count = 8 }) => {
   return (
-    <SkeletonTheme baseColor="#3a3a3a" highlightColor="#2a2a2a" duration={1.5}>
       <div className="relative">
         <div className="overflow-x-auto pb-4 hide-scrollbar">
           <div className="flex space-x-6 px-2">
@@ -25,7 +24,6 @@ const FavoriteBrandsSkeleton: React.FC<FavoriteBrandsSkeletonProps> = ({ count =
           </div>
         </div>
       </div>
-    </SkeletonTheme>
   );
 };
 

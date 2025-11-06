@@ -8,7 +8,7 @@ import LanguageSettingsComponent from './settings/LanguageSettingsComponent';
 
 const SettingsComponent: React.FC = () => {
   return (
-    <div className="p-4 sm:p-6 space-y-4">
+    <div className="p-0.5 sm:p-6 space-y-4">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-white">Settings</h2>
         <p className="text-gray-400 mt-1">Manage your account preferences and privacy</p>

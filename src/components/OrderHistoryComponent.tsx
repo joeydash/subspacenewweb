@@ -170,29 +170,52 @@ const OrderHistoryComponent: React.FC = () => {
 											<div className="border-t border-dashed border-gray-600 my-3"></div>
 
 											{/* Voucher Code Section */}
-											<div className="flex items-center gap-2">
-												<div className="flex-1 bg-dark-500 rounded-lg p-2 md:p-2.5 font-mono text-white text-sm md:text-base tracking-wider">
-													{order.coupon}
+											<div className="space-y-2">
+												<div className="flex items-center gap-2">
+													<div className="flex-1 bg-dark-500 rounded-lg p-2 md:p-2.5 font-mono text-white text-sm md:text-base tracking-wider">
+														{order.coupon}
+													</div>
+													<button
+														onClick={() => handleCopyCode(order.coupon)}
+														className="p-2 bg-dark-500 hover:bg-dark-300 rounded-lg transition-colors"
+														title="Copy code"
+													>
+														{copiedCode === order.coupon ? (
+															<CheckCircle className="h-4 w-4 text-green-400" />
+														) : (
+															<Copy className="h-4 w-4 text-gray-400" />
+														)}
+													</button>
+													<button
+														onClick={() => toggleOrderExpansion(order.id)}
+														className="p-2 bg-dark-500 hover:bg-dark-300 rounded-lg transition-colors"
+														title="View details"
+													>
+														<ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''
+															}`} />
+													</button>
 												</div>
-												<button
-													onClick={() => handleCopyCode(order.coupon)}
-													className="p-2 bg-dark-500 hover:bg-dark-300 rounded-lg transition-colors"
-													title="Copy code"
-												>
-													{copiedCode === order.coupon ? (
-														<CheckCircle className="h-4 w-4 text-green-400" />
-													) : (
-														<Copy className="h-4 w-4 text-gray-400" />
-													)}
-												</button>
-												<button
-													onClick={() => toggleOrderExpansion(order.id)}
-													className="p-2 bg-dark-500 hover:bg-dark-300 rounded-lg transition-colors"
-													title="View details"
-												>
-													<ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''
-														}`} />
-												</button>
+												
+												{/* PIN Section */}
+												{order.pin && (
+													<div className="flex items-center gap-2">
+														<div className="flex-1 bg-dark-500 rounded-lg p-2 md:p-2.5">
+															<span className="text-gray-400 text-xs mr-2">PIN:</span>
+															<span className="font-mono text-white text-sm md:text-base tracking-wider">{order.pin}</span>
+														</div>
+														<button
+															onClick={() => handleCopyCode(order.pin)}
+															className="p-2 bg-dark-500 hover:bg-dark-300 rounded-lg transition-colors"
+															title="Copy PIN"
+														>
+															{copiedCode === order.pin ? (
+																<CheckCircle className="h-4 w-4 text-green-400" />
+															) : (
+																<Copy className="h-4 w-4 text-gray-400" />
+															)}
+														</button>
+													</div>
+												)}
 											</div>
 
 											{/* Expanded Details */}

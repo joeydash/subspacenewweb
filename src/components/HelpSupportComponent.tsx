@@ -1,73 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, MessageSquare, HelpCircle } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useNavigate } from 'react-router-dom';
 import { handleSupportChat } from '../utils/supportChat';
+import HelpSupportSkeleton from '../skeletons/HelpSupportSkeleton';
+import { useSupport } from '../hooks/support/useSupport';
 
 
 
 const HelpSupportComponent: React.FC = () => {
 	const { user } = useAuthStore();
-	const [sections, setSections] = useState([]);
 	const [currentSection, setCurrentSection] = useState(-1);
-	const [isLoading, setIsLoading] = useState(false);
-	const [error, setError] = useState<string | null>(null);
-
 	const navigate = useNavigate();
 
-	useEffect(() => {
-		if (user?.id && user?.auth_token) {
-			fetchSupportData();
-		}
-	}, [user?.id, user?.auth_token]);
-
-	const fetchSupportData = async (query: string = '') => {
-		if (!user?.id || !user?.auth_token) return;
-
-		setIsLoading(true);
-		setError(null);
-
-		try {
-			const response = await fetch('https://db.subspace.money/v1/graphql', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${user.auth_token}`
-				},
-				body: JSON.stringify({
-					query: `
-					query MyQuery($query: String!, $user_id: uuid!) {
-						__typename
-						w_supportSearch(request: { query: $query, user_id: $user_id }) {
-							__typename
-							sections
-						}
-					}
-          `,
-					variables: {
-						query: query || 'help',
-						user_id: user.id
-					}
-				})
-			});
-
-			const data = await response.json();
-
-			if (data.errors) {
-				setError('Failed to fetch support data');
-				return;
-			}
-
-			const sections = data.data?.w_supportSearch?.sections;
-			setSections(sections);
-
-		} catch (error) {
-			console.error('Error fetching support data:', error);
-			setError('Failed to fetch support data');
-		} finally {
-			setIsLoading(false);
-		}
-	}
+	const { data: sections = [], isLoading, error, refetch } = useSupport(user?.auth_token, user?.id, 'help');
 
 
 	const handleBlogClick = (url: string) => {
@@ -77,7 +23,6 @@ const HelpSupportComponent: React.FC = () => {
 	const handleChatWithSupport = async () => {
 		const roomId = await handleSupportChat(user?.id, user?.auth_token);
 
-		console.log('roomid ', roomId);
 		navigate('/chat?groupId=' + roomId);
 	};
 
@@ -97,18 +42,14 @@ const HelpSupportComponent: React.FC = () => {
 			</div>
 
 			{/* Loading State */}
-			{isLoading && (
-				<div className="flex justify-center items-center h-64">
-					<div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
-				</div>
-			)}
+			{isLoading && <HelpSupportSkeleton />}
 
 			{/* Error State */}
 			{error && (
 				<div className="bg-red-500/10 border border-red-500/20 rounded-xl p-6">
-					<p className="text-red-400">{error}</p>
+					<p className="text-red-400">{error.message || 'Failed to fetch support data'}</p>
 					<button
-						onClick={() => fetchSupportData()}
+						onClick={() => refetch()}
 						className="mt-4 btn btn-primary"
 					>
 						Try Again

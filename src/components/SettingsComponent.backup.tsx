@@ -4,24 +4,7 @@ import { useLanguageStore, languages } from '../store/languageStore';
 import QuickRepliesSkeleton from '../skeletons/QuickRepliesSkeleton';
 import { useAuthStore } from '../store/authStore';
 
-interface SettingsComponentProps {
-	user: {
-		auth_token: string;
-		dp: string;
-		fullname: string;
-		id: string;
-		isBlocked: boolean
-		kycStatus: string
-		locked_amount: number
-		name: string
-		phone: string
-		unlocked_amount: number
-		walletBalance: number
-	}
-}
-
-
-const SettingsComponent: React.FC<SettingsComponentProps> = () => {
+const SettingsComponent: React.FC = () => {
 	const { t } = useLanguageStore();
 	const {user} = useAuthStore();
 	const [step, setStep] = useState('');

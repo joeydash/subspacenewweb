@@ -1,5 +1,5 @@
 import React from 'react';
-import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
+import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 
 interface CarouselSkeletonProps {
@@ -8,7 +8,6 @@ interface CarouselSkeletonProps {
 
 const CarouselSkeleton: React.FC<CarouselSkeletonProps> = ({ count = 3 }) => {
   return (
-    <SkeletonTheme baseColor="#2a2a2a" highlightColor="#3a3a3a" duration={1.5}>
       <div className="mb-12">
         <div className="relative h-48 xs:h-80 md:h-52 lg:h-[16rem] overflow-hidden">
           <div className="flex items-center justify-center h-full relative">
@@ -57,7 +56,6 @@ const CarouselSkeleton: React.FC<CarouselSkeletonProps> = ({ count = 3 }) => {
           ))}
         </div>
       </div>
-    </SkeletonTheme>
   );
 };
 

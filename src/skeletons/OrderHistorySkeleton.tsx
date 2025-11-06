@@ -1,5 +1,5 @@
 import React from 'react';
-import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
+import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 
 interface OrderHistorySkeletonProps {
@@ -8,7 +8,6 @@ interface OrderHistorySkeletonProps {
 
 const OrderHistorySkeleton: React.FC<OrderHistorySkeletonProps> = ({ count = 5 }) => {
   return (
-    <SkeletonTheme baseColor="#2a2a2a" highlightColor="#3a3a3a" duration={1.5}>
       <div className="space-y-4">
         {Array.from({ length: count }).map((_, index) => (
           <div
@@ -60,7 +59,6 @@ const OrderHistorySkeleton: React.FC<OrderHistorySkeletonProps> = ({ count = 5 }
           </div>
         ))}
       </div>
-    </SkeletonTheme>
   );
 };
 

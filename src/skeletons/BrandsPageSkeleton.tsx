@@ -1,5 +1,5 @@
 import React from 'react';
-import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
+import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 
 interface BrandCardSkeletonProps {
@@ -8,7 +8,6 @@ interface BrandCardSkeletonProps {
 
 export const BrandCardSkeleton: React.FC<BrandCardSkeletonProps> = ({ count = 12 }) => {
   return (
-    <SkeletonTheme baseColor="#2a2a2a" highlightColor="#3a3a3a" duration={1.5}>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
         {Array.from({ length: count }).map((_, index) => (
           <div
@@ -53,7 +52,6 @@ export const BrandCardSkeleton: React.FC<BrandCardSkeletonProps> = ({ count = 12
           </div>
         ))}
       </div>
-    </SkeletonTheme>
   );
 };
 

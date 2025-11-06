@@ -1,5 +1,5 @@
 import React from 'react';
-import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
+import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 
 interface CategoriesSkeletonProps {
@@ -8,7 +8,6 @@ interface CategoriesSkeletonProps {
 
 const CategoriesSkeleton: React.FC<CategoriesSkeletonProps> = ({ count = 8 }) => {
   return (
-    <SkeletonTheme baseColor="#2a2a2a" highlightColor="#3a3a3a" duration={1.5}>
       <div className="relative">
         <div className="overflow-x-auto pb-4 hide-scrollbar">
           <div className="flex flex-col space-y-6 px-1" style={{ width: `${Math.ceil(count / 2) * (256 + 24)}px` }}>
@@ -96,7 +95,6 @@ const CategoriesSkeleton: React.FC<CategoriesSkeletonProps> = ({ count = 8 }) =>
           </div>
         </div>
       </div>
-    </SkeletonTheme>
   );
 };
 

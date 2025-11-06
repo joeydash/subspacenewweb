@@ -1,5 +1,5 @@
 import React from 'react';
-import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
+import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 
 interface PublicGroupCardSkeletonProps {
@@ -8,7 +8,6 @@ interface PublicGroupCardSkeletonProps {
 
 export const PublicGroupCardSkeleton: React.FC<PublicGroupCardSkeletonProps> = ({ count = 12 }) => {
   return (
-    <SkeletonTheme baseColor="#2a2a2a" highlightColor="#3a3a3a" duration={1.5}>
       <div className="max-h-[calc(100vh-24rem)] md:max-h-none overflow-y-auto md:overflow-y-visible pr-2 md:pr-0">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {Array.from({ length: count }).map((_, index) => (
@@ -85,7 +84,6 @@ export const PublicGroupCardSkeleton: React.FC<PublicGroupCardSkeletonProps> = (
           ))}
         </div>
       </div>
-    </SkeletonTheme>
   );
 };
 
@@ -99,7 +97,6 @@ export const PublicGroupsFiltersSkeleton: React.FC<PublicGroupsFiltersSkeletonPr
   showSearchAndFilters = true 
 }) => {
   return (
-    <SkeletonTheme baseColor="#2a2a2a" highlightColor="#3a3a3a" duration={1.5}>
       <div className="space-y-8">
         {/* Header */}
         {showHeader && (
@@ -143,7 +140,6 @@ export const PublicGroupsFiltersSkeleton: React.FC<PublicGroupsFiltersSkeletonPr
           </div>
         )}
       </div>
-    </SkeletonTheme>
   );
 };
 

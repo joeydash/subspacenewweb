@@ -1,17 +1,17 @@
 import { apiClient } from "../config/axiosClient";
 
 interface FetchRentPriceParams {
-  user_id: string;
-  product_location_id: string;
-  start_time: string;
-  end_time: string;
-  auth_token?: string;
+	user_id: string;
+	product_location_id: string;
+	start_time: string;
+	end_time: string;
+	auth_token?: string;
 }
 
 export const fetchRentPrice = async (params: FetchRentPriceParams) => {
-  const { user_id, product_location_id, start_time, end_time, auth_token } = params;
+	const { user_id, product_location_id, start_time, end_time, auth_token } = params;
 
-  const mutation = `
+	const mutation = `
     mutation GetSubscriptionPrice(
       $user_id: uuid!,
       $product_location_id: String!,
@@ -31,31 +31,31 @@ export const fetchRentPrice = async (params: FetchRentPriceParams) => {
     }
   `;
 
-  const variables = { user_id, product_location_id, start_time, end_time };
+	const variables = { user_id, product_location_id, start_time, end_time };
 
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
+	const headers: Record<string, string> = {
+		"Content-Type": "application/json",
+	};
 
-  if (auth_token) headers["Authorization"] = `Bearer ${auth_token}`;
+	if (auth_token) headers["Authorization"] = `Bearer ${auth_token}`;
 
-  const { data } = await apiClient.post("", { query: mutation, variables }, { headers });
+	const { data } = await apiClient.post("", { query: mutation, variables }, { headers });
 
-  if (data.errors) {
-    throw new Error(data.errors.map((e: any) => e.message).join(", "));
-  }
+	if (data.errors) {
+		throw new Error(data.errors.map((e: any) => e.message).join(", "));
+	}
 
-  return data.data.getSubscriptionPrice.data;
+	return data.data.getSubscriptionPrice.data;
 };
 
 
 export const fetchRentProducts = async ({ serviceId, user, address }) => {
-  if (!serviceId) return [];
+	if (!serviceId) return [];
 
-  const { latitude, longitude } = address;
-  if (!latitude || !longitude) return [];
+	const { latitude, longitude } = address;
+	if (!latitude || !longitude) return [];
 
-  const query = `
+	const query = `
     mutation GetSubscriptionProducts(
       $latitude: String!,
       $longitude: String!,
@@ -75,50 +75,52 @@ export const fetchRentProducts = async ({ serviceId, user, address }) => {
     }
   `;
 
-  const variables = {
-    latitude,
-    longitude,
-    user_id: user?.id || "",
-    service_id: serviceId,
-  };
+	const variables = {
+		latitude,
+		longitude,
+		user_id: user?.id || "",
+		service_id: serviceId,
+	};
 
-  const { data } = await apiClient.post(
-    "",
-    { query, variables },
-    {
-      headers: {
-        Authorization: `Bearer ${user?.auth_token || ""}`,
-      },
-    }
-  );
+	const { data } = await apiClient.post(
+		"",
+		{ query, variables },
+		{
+			headers: {
+				Authorization: `Bearer ${user?.auth_token || ""}`,
+			},
+		}
+	);
 
-  return data?.data?.getSubscriptionProducts?.whatsub_subscription_products || [];
+	return data?.data?.getSubscriptionProducts?.whatsub_subscription_products || [];
 };
 
 interface RentProductParams {
-  address_id: string;
-  user_id: string;
-  product_id: string;
-  start_time: string;
-  end_time: string;
-  auth_token?: string;
+	address_id: string;
+	user_id: string;
+	product_id: string;
+	product_location_id: string;
+	start_time: string;
+	end_time: string;
+	auth_token?: string;
 }
 
 interface RentProductResponse {
-  message: string;
-  affected_rows: number;
-  details: any;
-  data: any;
+	message: string;
+	affected_rows: number;
+	details: any;
+	data: any;
 }
 
 export const rentProduct = async (params: RentProductParams): Promise<RentProductResponse> => {
-  const { address_id, user_id, product_id, start_time, end_time, auth_token } = params;
+	const { address_id, user_id, product_id, product_location_id, start_time, end_time, auth_token } = params;
 
-  const mutation = `
+	const mutation = `
     mutation RentProduct(
       $address_id: uuid!,
       $user_id: uuid!,
       $product_id: uuid!,
+      $product_location_id: uuid!,
       $start_time: timestamptz!,
       $end_time: timestamptz!
     ) {
@@ -126,6 +128,7 @@ export const rentProduct = async (params: RentProductParams): Promise<RentProduc
         address_id: $address_id,
         user_id: $user_id,
         product_id: $product_id,
+        product_location_id: $product_location_id,
         start_time: $start_time,
         end_time: $end_time
       }) {
@@ -137,57 +140,57 @@ export const rentProduct = async (params: RentProductParams): Promise<RentProduc
     }
   `;
 
-  const variables = { address_id, user_id, product_id, start_time, end_time };
+	const variables = { address_id, user_id, product_id,product_location_id, start_time, end_time };
 
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
+	const headers: Record<string, string> = {
+		"Content-Type": "application/json",
+	};
 
-  if (auth_token) headers["Authorization"] = `Bearer ${auth_token}`;
+	if (auth_token) headers["Authorization"] = `Bearer ${auth_token}`;
 
-  const { data } = await apiClient.post("", { query: mutation, variables }, { headers });
+	const { data } = await apiClient.post("", { query: mutation, variables }, { headers });
 
-  if (data.errors) {
-    throw new Error(data.errors.map((e: any) => e.message).join(", "));
-  }
+	if (data.errors) {
+		throw new Error(data.errors.map((e: any) => e.message).join(", "));
+	}
 
 
-  return data.data.rentProduct;
+	return data.data.rentProduct;
 };
 
 interface RentalHistoryParams {
-  user_id: string;
-  auth_token?: string;
+	user_id: string;
+	auth_token?: string;
 }
 
 export interface RentalHistoryItem {
-  id: string;
-  start_time: string;
-  end_time: string;
-  quantity: number;
-  total_price: number;
-  whatsub_addresses: {
-    name: string;
-    full_address: string;
-    contact_number: string;
-    type: string;
-    fhb_name: string;
-    nearby_landmark: string;
-    floor: string;
-  };
-  whatsub_subscription_product_location: {
-    whatsub_subscription_product: {
-      product_name: string;
-      product_description: string;
-      product_photos: string[];
-    };
-  };
+	id: string;
+	start_time: string;
+	end_time: string;
+	quantity: number;
+	total_price: number;
+	whatsub_addresses: {
+		name: string;
+		full_address: string;
+		contact_number: string;
+		type: string;
+		fhb_name: string;
+		nearby_landmark: string;
+		floor: string;
+	};
+	whatsub_subscription_product_location: {
+		whatsub_subscription_product: {
+			product_name: string;
+			product_description: string;
+			product_photos: string[];
+		};
+	};
 }
 
 export const fetchRentalHistory = async (params: RentalHistoryParams): Promise<RentalHistoryItem[]> => {
-  const { userId, authToken } = params;
+	const { userId, authToken } = params;
 
-  const query = `
+	const query = `
     query GetUserSubscriptionMappings($userId: uuid!) {
       whatsub_subscription_product_location_user_mapping(
         where: { user_id: { _eq: $userId } }
@@ -219,49 +222,49 @@ export const fetchRentalHistory = async (params: RentalHistoryParams): Promise<R
     }
   `;
 
-  const variables = { userId: userId };
+	const variables = { userId: userId };
 
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
+	const headers: Record<string, string> = {
+		"Content-Type": "application/json",
+	};
 
-  if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
+	if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
 
-  const { data } = await apiClient.post("", { query, variables }, { headers });
+	const { data } = await apiClient.post("", { query, variables }, { headers });
 
-  if (data.errors) {
-    throw new Error(data.errors.map((e: any) => e.message).join(", "));
-  }
+	if (data.errors) {
+		throw new Error(data.errors.map((e: any) => e.message).join(", "));
+	}
 
-  return data.data.whatsub_subscription_product_location_user_mapping;
+	return data.data.whatsub_subscription_product_location_user_mapping;
 };
 
 
 export interface RentProductClass {
-  class_id: string;
-  class_name: string;
-  poster: string;
-  services_preview: any[];
-  total_services_count: number;
+	class_id: string;
+	class_name: string;
+	poster: string;
+	services_preview: any[];
+	total_services_count: number;
 }
 
 interface FetchRentProductClassesParams {
-  authToken: string;
-  userId: string;
-  address: { latitude: string; longitude: string };
+	authToken: string;
+	userId: string;
+	address: { latitude: string; longitude: string };
 }
 
 export const fetchRentProductClasses = async ({
-  authToken,
-  userId,
-  address,
+	authToken,
+	userId,
+	address,
 }: FetchRentProductClassesParams): Promise<RentProductClass[]> => {
-  if (!address?.latitude || !address?.longitude) return [];
+	if (!address?.latitude || !address?.longitude) return [];
 
-  const response = await apiClient.post(
-    '',
-    {
-      query: `
+	const response = await apiClient.post(
+		'',
+		{
+			query: `
         mutation GetSubscriptionProductClasses(
           $latitude: String!,
           $longitude: String!,
@@ -278,54 +281,54 @@ export const fetchRentProductClasses = async ({
           }
         }
       `,
-      variables: {
-        latitude: address.latitude,
-        longitude: address.longitude,
-        user_id: userId || ""
-      }
-    },
-    {
-      headers: { Authorization: `Bearer ${authToken || ""}` }
-    }
-  );
+			variables: {
+				latitude: address.latitude,
+				longitude: address.longitude,
+				user_id: userId || ""
+			}
+		},
+		{
+			headers: { Authorization: `Bearer ${authToken || ""}` }
+		}
+	);
 
-  const rawClasses =
-    response.data?.data?.getSubscriptionProductClasses?.whatsub_subscription_product_classes || [];
+	const rawClasses =
+		response.data?.data?.getSubscriptionProductClasses?.whatsub_subscription_product_classes || [];
 
-  return rawClasses.map((item: any) => ({
-    class_id: item.class_id,
-    class_name: item.class_name,
-    poster: item.poster || '',
-    services_preview: item.services_preview || [],
-    total_services_count: item.total_services_count || 0
-  }));
+	return rawClasses.map((item: any) => ({
+		class_id: item.class_id,
+		class_name: item.class_name,
+		poster: item.poster || '',
+		services_preview: item.services_preview || [],
+		total_services_count: item.total_services_count || 0
+	}));
 };
 
 
 export interface Address {
-  latitude: string;
-  longitude: string;
+	latitude: string;
+	longitude: string;
 }
 
 export interface FetchRentProductBrandsParams {
-  authToken: string;
-  userId: string;
-  classId: string;
-  address: Address;
+	authToken: string;
+	userId: string;
+	classId: string;
+	address: Address;
 }
 
 export const fetchRentProductBrands = async ({
-  authToken,
-  userId,
-  classId,
-  address,
+	authToken,
+	userId,
+	classId,
+	address,
 }: FetchRentProductBrandsParams): Promise<any[]> => {
-  if (!classId || !address?.latitude || !address?.longitude) return [];
+	if (!classId || !address?.latitude || !address?.longitude) return [];
 
-  const response = await apiClient.post(
-    '',
-    {
-      query: `
+	const response = await apiClient.post(
+		'',
+		{
+			query: `
        mutation GetSubscriptionProductServices(
               $latitude: String!,
               $longitude: String!,
@@ -344,21 +347,21 @@ export const fetchRentProductBrands = async ({
               }
             }
       `,
-      variables: {
-        latitude: address.latitude,
-        longitude: address.longitude,
-        user_id: userId || "",
-        class_id: classId,
-      },
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${authToken || ""}`,
-      },
-    }
-  );
+			variables: {
+				latitude: address.latitude,
+				longitude: address.longitude,
+				user_id: userId || "",
+				class_id: classId,
+			},
+		},
+		{
+			headers: {
+				Authorization: `Bearer ${authToken || ""}`,
+			},
+		}
+	);
 
-  return (
-    response.data?.data?.getSubscriptionProductServices?.whatsub_subscription_product_services || []
-  );
+	return (
+		response.data?.data?.getSubscriptionProductServices?.whatsub_subscription_product_services || []
+	);
 };

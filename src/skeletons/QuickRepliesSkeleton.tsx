@@ -1,5 +1,5 @@
 import React from "react";
-import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
+import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 
 interface QuickRepliesSkeletonProps {
@@ -8,7 +8,6 @@ interface QuickRepliesSkeletonProps {
 
 const QuickRepliesSkeleton: React.FC<QuickRepliesSkeletonProps> = ({ count = 3 }) => {
   return (
-    <SkeletonTheme baseColor="#2a2a2a" highlightColor="#3a3a3a" duration={1.5}>
       <div className="space-y-3">
         {Array.from({ length: count }).map((_, index) => (
           <div
@@ -32,7 +31,6 @@ const QuickRepliesSkeleton: React.FC<QuickRepliesSkeletonProps> = ({ count = 3 }
           </div>
         ))}
       </div>
-    </SkeletonTheme>
   );
 };
 

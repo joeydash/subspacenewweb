@@ -1,5 +1,5 @@
 import React from 'react';
-import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
+import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 
 interface MoneySavedSkeletonProps {
@@ -12,7 +12,6 @@ const MoneySavedSkeleton: React.FC<MoneySavedSkeletonProps> = ({
   topSaversCount = 5 
 }) => {
   return (
-    <SkeletonTheme baseColor="#2a2a2a" highlightColor="#3a3a3a" duration={1.5}>
       <div className="space-y-8">
         {/* Header with Total Savings */}
         <div className="relative bg-gradient-to-br from-indigo-500/20 via-purple-500/20 to-pink-500/20 border border-indigo-500/30 rounded-2xl p-8 overflow-hidden">
@@ -135,7 +134,6 @@ const MoneySavedSkeleton: React.FC<MoneySavedSkeletonProps> = ({
           <Skeleton height={56} className="rounded-xl" />
         </div>
       </div>
-    </SkeletonTheme>
   );
 };
 

@@ -30,11 +30,12 @@ interface User {
   unlocked_amount?: number;
   kycStatus?: string;
   isBlocked?: boolean;
-  blockedTitle?: string;    // Add this
-  blockedDetails?: string; // Add this
-  isMarketRandomOn?: boolean
+  blockedTitle?: string;
+  blockedDetails?: string;
+  isMarketRandomOn?: boolean;
   transactionChargesPercentage?: number;
   transactionChargesPrices?: number;
+  mailPrefix?: string;
   
 }
 
@@ -180,7 +181,8 @@ class AuthStore {
             blockedDetails: profileData.blockedDetails,
             isMarketRandomOn: profileData?.isMarketRandomOn,
             transactionChargesPrices: profileData?.transactionChargesPrices,
-            transactionChargesPercentage: profileData?.transactionChargesPercentage
+            transactionChargesPercentage: profileData?.transactionChargesPercentage,
+            mailPrefix: profileData?.mailPrefix
           });
         }
       } catch (err) {
@@ -540,7 +542,8 @@ export const verifyOTP = async (phone: string, otp: string) => {
         blockedDetails: profileData?.blockedDetails,
         isMarketRandomOn: profileData?.isMarketRandomOn,
         transactionChargesPrices: profileData?.transactionChargesPrices,
-        transactionChargesPercentage: profileData?.transactionChargesPercentage
+        transactionChargesPercentage: profileData?.transactionChargesPercentage,
+        mailPrefix: profileData?.mailPrefix
       });
 
       

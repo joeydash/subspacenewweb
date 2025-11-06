@@ -1,5 +1,5 @@
 import React from 'react';
-import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
+import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 
 interface GroupCardSkeletonProps {
@@ -8,7 +8,6 @@ interface GroupCardSkeletonProps {
 
 export const GroupCardSkeleton: React.FC<GroupCardSkeletonProps> = ({ count = 12 }) => {
   return (
-    <SkeletonTheme baseColor="#1e293b" highlightColor="#334155" duration={1.5}>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {Array.from({ length: count }).map((_, index) => (
           <div
@@ -85,7 +84,6 @@ export const GroupCardSkeleton: React.FC<GroupCardSkeletonProps> = ({ count = 12
           </div>
         ))}
       </div>
-    </SkeletonTheme>
   );
 };
 
@@ -99,7 +97,7 @@ export const GroupFiltersSkeleton: React.FC<GroupFiltersSkeletonProps> = ({
   showSearchAndSort = true
 }) => {
   return (
-    <SkeletonTheme baseColor="#1e293b" highlightColor="#334155" duration={1.5}>
+    <>
       <div className="space-y-4">
         {/* Plan Header */}
         {showPlanHeader && (
@@ -138,7 +136,7 @@ export const GroupFiltersSkeleton: React.FC<GroupFiltersSkeletonProps> = ({
           </div>
         </div>
       )}
-    </SkeletonTheme>
+    </>
   );
 };
 
