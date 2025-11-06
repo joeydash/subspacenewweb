@@ -1,28 +1,16 @@
 import { useState, useEffect } from 'react';
 import { User, Package, CreditCard, LogOut, Users, Settings, PiggyBank, BookOpen, Mail, BadgeInfo, Star, Info, Clock, Menu, X, MapPin } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuthStore, fetchUserInfo } from '../store/authStore';
 import { useLanguageStore } from '../store/languageStore';
-import ProfileTabContent from '../components/ProfileTabContent';
-import SettingsComponent from '../components/SettingsComponent.backup';
-import MoneySaved from '../components/MoneySaved';
-import BlogsComponent from '../components/BlogsComponent';
-import MailboxComponent from '../components/MailboxComponent';
-import HelpSupportComponent from '../components/HelpSupportComponent';
-import AppInfoComponent from '../components/AppInfoComponent';
-import OrderHistoryComponent from '../components/OrderHistoryComponent';
-import AddressesComponent from '../components/AddressesComponent';
-import RentalHistoryComponent from '../components/RentalHistoryComponent';
-import PaymentMethodsComponent from '../components/PaymentMethodsComponent';
-import { useSearchParams } from 'react-router-dom';
 
 
 const ProfilePage = () => {
 	const { user, logout } = useAuthStore();
 	const { t } = useLanguageStore();
-	const [activeTab, setActiveTab] = useState('profile');
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 	const navigate = useNavigate();
+	const location = useLocation();
 
 	const [profileData, setProfileData] = useState({
 		fullname: user?.fullname || user?.name || '',
@@ -57,10 +45,7 @@ const ProfilePage = () => {
 				dp: user.dp || ''
 			}));
 		}
-	}, [user?.dp, user?.fullname, user?.email, user?.username]);
-
-	const [searchParams, setSearchParams] = useSearchParams();
-	const currentTab = searchParams.get('tab');
+	}, [user]);
 
 	const handleLogout = () => {
 		logout();
@@ -75,11 +60,10 @@ const ProfilePage = () => {
 		setIsSidebarOpen(false);
 	};
 
-	// Close sidebar when tab changes on mobile
-	const handleTabChange = (tab: string) => {
-		setActiveTab(tab);
+	// Close sidebar when route changes on mobile
+	useEffect(() => {
 		setIsSidebarOpen(false);
-	};
+	}, [location.pathname]);
 
 	// Prevent body scroll when sidebar is open on mobile
 	useEffect(() => {
@@ -94,20 +78,15 @@ const ProfilePage = () => {
 		};
 	}, [isSidebarOpen]);
 
-	useEffect(() => {
-		if (currentTab) {
-			setSearchParams(prevParams => {
-				const newParams = new URLSearchParams(prevParams);
-				newParams.delete('tab');
-				return newParams;
-			});
-			setActiveTab(currentTab);
-		}
-	}, [currentTab, setSearchParams]);
+	// Get active tab from URL
+	const getActiveTab = () => {
+		const path = location.pathname;
+		if (path === '/profile' || path === '/profile/') return 'profile';
+		const tab = path.split('/profile/')[1];
+		return tab || 'profile';
+	};
 
-	if (currentTab) {
-		return null;
-	}
+	const activeTab = getActiveTab();
 
 	return (
 		<div className="max-w-[2000px] mx-auto pt-20 md:pt-12">
@@ -168,46 +147,46 @@ const ProfilePage = () => {
 						</div>
 
 						<div className="space-y-1 px-6 pb-6 overflow-y-auto flex-1 small-scrollbar">
-							<button
-								onClick={() => handleTabChange('profile')}
+							<Link
+								to="/profile"
 								className={`w-full text-left px-4 py-2 rounded-full flex items-center ${activeTab === 'profile' ? 'bg-dark-400 text-white' : 'text-gray-400 hover:bg-dark-400 hover:text-white'
 									}`}
 							>
 								<User className="h-5 w-5 mr-3" />
 								{t('nav.profile')}
-							</button>
-							<button
-								onClick={() => handleTabChange('payment')}
+							</Link>
+							<Link
+								to="/profile/payment"
 								className={`w-full text-left px-4 py-2 rounded-full flex items-center ${activeTab === 'payment' ? 'bg-dark-400 text-white' : 'text-gray-400 hover:bg-dark-400 hover:text-white'
 									}`}
 							>
 								<CreditCard className="h-5 w-5 mr-3" />
 								Payout Methods
-							</button>
-							<button
-								onClick={() => handleTabChange('addresses')}
+							</Link>
+							<Link
+								to="/profile/addresses"
 								className={`w-full text-left px-4 py-2 rounded-full flex items-center ${activeTab === 'addresses' ? 'bg-dark-400 text-white' : 'text-gray-400 hover:bg-dark-400 hover:text-white'
 									}`}
 							>
 								<MapPin className="h-5 w-5 mr-3" />
 								My Addresses
-							</button>
-							<button
-								onClick={() => handleTabChange('order-history')}
+							</Link>
+							<Link
+								to="/profile/order-history"
 								className={`w-full text-left px-4 py-2 rounded-full flex items-center ${activeTab === 'order-history' ? 'bg-dark-400 text-white' : 'text-gray-400 hover:bg-dark-400 hover:text-white'
 									}`}
 							>
 								<Clock className="h-5 w-5 mr-3" />
 								Order History
-							</button>
-							<button
-								onClick={() => handleTabChange('rental-history')}
+							</Link>
+							<Link
+								to="/profile/rental-history"
 								className={`w-full text-left px-4 py-2 rounded-full flex items-center ${activeTab === 'rental-history' ? 'bg-dark-400 text-white' : 'text-gray-400 hover:bg-dark-400 hover:text-white'
 									}`}
 							>
 								<Package className="h-5 w-5 mr-3" />
 								Rental History
-							</button>
+							</Link>
 							<Link
 								to="/friends"
 								className="w-full text-left px-4 py-2 rounded-full text-gray-400 hover:bg-dark-400 hover:text-white flex items-center"
@@ -215,62 +194,61 @@ const ProfilePage = () => {
 								<Users className="h-5 w-5 mr-3" />
 								{t('nav.friends')}
 							</Link>
-							<button
-								onClick={() => handleTabChange('settings')}
+							<Link
+								to="/profile/settings"
 								className={`w-full text-left px-4 py-2 rounded-full flex items-center ${activeTab === 'settings' ? 'bg-dark-400 text-white' : 'text-gray-400 hover:bg-dark-400 hover:text-white'
 									}`}
 							>
 								<Settings className="h-5 w-5 mr-3" />
 								Settings
-							</button>
-							<button
-								onClick={() => handleTabChange('money-saved')}
+							</Link>
+							<Link
+								to="/profile/money-saved"
 								className={`w-full text-left px-4 py-2 rounded-full flex items-center ${activeTab === 'money-saved' ? 'bg-dark-400 text-white' : 'text-gray-400 hover:bg-dark-400 hover:text-white'
 									}`}
 							>
 								<PiggyBank className="h-5 w-5 mr-3" />
 								Money Saved
-							</button>
-							<button
-								onClick={() => handleTabChange('blogs')}
+							</Link>
+							<Link
+								to="/profile/blogs"
 								className={`w-full text-left px-4 py-2 rounded-full flex items-center ${activeTab === 'blogs' ? 'bg-dark-400 text-white' : 'text-gray-400 hover:bg-dark-400 hover:text-white'
 									}`}
 							>
 								<BookOpen className="h-5 w-5 mr-3" />
 								Blogs and Articles
-							</button>
-							<button
-								onClick={() => handleTabChange('mailbox')}
+							</Link>
+							<Link
+								to="/profile/mailbox"
 								className={`w-full text-left px-4 py-2 rounded-full flex items-center ${activeTab === 'mailbox' ? 'bg-dark-400 text-white' : 'text-gray-400 hover:bg-dark-400 hover:text-white'
 									}`}
 							>
 								<Mail className="h-5 w-5 mr-3" />
 								AI-powered Mailbox
-							</button>
-							<button
-								onClick={() => handleTabChange('help')}
+							</Link>
+							<Link
+								to="/profile/help"
 								className={`w-full text-left px-4 py-2 rounded-full flex items-center ${activeTab === 'help' ? 'bg-dark-400 text-white' : 'text-gray-400 hover:bg-dark-400 hover:text-white'
 									}`}
 							>
 								<BadgeInfo className="h-5 w-5 mr-3" />
 								Help And Support
-							</button>
+							</Link>
 							<button
 								onClick={() => window.open('https://play.google.com/store/apps/details?id=org.grow90.whatsub')}
-								className={`w-full text-left px-4 py-2 rounded-full flex items-center ${activeTab === 'review' ? 'bg-dark-400 text-white' : 'text-gray-400 hover:bg-dark-400 hover:text-white'
-									}`}
+								className="w-full text-left px-4 py-2 rounded-full text-gray-400 hover:bg-dark-400 hover:text-white flex items-center"
 							>
 								<Star className="h-5 w-5 mr-3" />
 								Review Us
 							</button>
-							<button
-								onClick={() => handleTabChange('app-info')}
+							<Link
+								to="/profile/app-info"
 								className={`w-full text-left px-4 py-2 rounded-full flex items-center ${activeTab === 'app-info' ? 'bg-dark-400 text-white' : 'text-gray-400 hover:bg-dark-400 hover:text-white'
 									}`}
 							>
 								<Info className="h-5 w-5 mr-3" />
 								App Info
-							</button>
+							</Link>
 							<button
 								onClick={handleLogout}
 								className="w-full text-left px-4 py-2 rounded-full text-red-500 hover:bg-red-900 hover:bg-opacity-20 flex items-center"
@@ -286,49 +264,7 @@ const ProfilePage = () => {
 				<div className="order-1 md:order-3 flex-1 min-w-0 md:pl-8">
 					<div className="rounded-lg overflow-hidden md:mt-0">
 						<div className="max-sm:max-h-[800px] sm:h-[800px] overflow-y-auto small-scrollbar max-sm:p-2 sm:px-2">
-							{activeTab === 'profile' && (
-								<ProfileTabContent />
-							)}
-
-							{activeTab === 'payment' && (
-								<PaymentMethodsComponent />
-							)}
-
-							{activeTab === 'addresses' && (
-								<AddressesComponent />
-							)}
-
-							{activeTab === 'order-history' && (
-								<OrderHistoryComponent />
-							)}
-
-							{activeTab === 'rental-history' && (
-								<RentalHistoryComponent />
-							)}
-
-							{activeTab === 'settings' && (
-								<SettingsComponent />
-							)}
-
-							{activeTab === 'money-saved' && (
-								<MoneySaved />
-							)}
-
-							{activeTab === 'blogs' && (
-								<BlogsComponent />
-							)}
-
-							{activeTab === 'mailbox' && (
-								<MailboxComponent />
-							)}
-
-							{activeTab === 'help' && (
-								<HelpSupportComponent />
-							)}
-
-							{activeTab === 'app-info' && (
-								<AppInfoComponent />
-							)}
+							<Outlet />
 						</div>
 					</div>
 				</div>

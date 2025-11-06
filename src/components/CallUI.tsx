@@ -195,9 +195,6 @@ export function CallUI({ friendId, friendName, onCallEnd, autoStart = false }: C
 		};
 	}, [callId, authToken, callStatus, callBilling]);
 
-	const addLog = (_message: string, _type = 'info') => {
-		// Logging removed for cleaner UI
-	};
 
 	const updateStats = () => {
 		// Stats tracking removed for cleaner UI
@@ -211,8 +208,6 @@ export function CallUI({ friendId, friendName, onCallEnd, autoStart = false }: C
 
 		try {
 			setConnecting(true);
-			addLog('Initiating call...', 'info');
-
 			const response = await fetch('https://db.subspace.money/v1/graphql', {
 				method: 'POST',
 				headers: {
@@ -251,15 +246,14 @@ export function CallUI({ friendId, friendName, onCallEnd, autoStart = false }: C
 
 			setCallId(callData.call_id);
 			setCallStatus(callData?.status || 'queued'); // Set initial status
-			addLog(`Call initiated with ID: ${callData.call_id}`, 'success');
 
 			initializeAudioClient(callData.websocket);
 
 		} catch (err: any) {
 			console.error('Error making call:', err);
-			addLog(`Error making call: ${err.message}`, 'error');
 			toast.error('Failed to make call');
 			setConnecting(false);
+			onCallEnd?.();
 		}
 	};
 
@@ -301,17 +295,14 @@ export function CallUI({ friendId, friendName, onCallEnd, autoStart = false }: C
 
 				async connect() {
 					try {
-						addLog('Connecting to WebSocket...', 'info');
 						await this.connectWebSocket(wsUrl);
 						await this.initializeAudio();
 
 						this.isConnected = true;
 						setConnected(true);
 						setConnecting(false);
-						addLog('Connected successfully', 'success');
 
 					} catch (error: any) {
-						addLog(`Connection failed: ${error.message}`, 'error');
 						this.disconnect();
 						this.isConnected = false;
 						setConnected(false);
@@ -324,7 +315,6 @@ export function CallUI({ friendId, friendName, onCallEnd, autoStart = false }: C
 						this.ws = new WebSocket(url);
 
 						this.ws.onopen = () => {
-							addLog('WebSocket connected', 'success');
 							resolve(null);
 						};
 
@@ -333,7 +323,6 @@ export function CallUI({ friendId, friendName, onCallEnd, autoStart = false }: C
 						};
 
 						this.ws.onclose = () => {
-							addLog('WebSocket disconnected', 'warning');
 							if (this.isConnected) {
 								this.isConnected = false;
 								setConnected(false);
@@ -342,7 +331,6 @@ export function CallUI({ friendId, friendName, onCallEnd, autoStart = false }: C
 						};
 
 						this.ws.onerror = () => {
-							addLog('WebSocket error', 'error');
 							reject(new Error('WebSocket connection failed'));
 						};
 
@@ -404,7 +392,6 @@ export function CallUI({ friendId, friendName, onCallEnd, autoStart = false }: C
 
 						this.processorNode.onaudioprocess = this.handleAudioProcess.bind(this);
 
-						addLog('Audio initialized with advanced processing', 'success');
 					} catch (error: any) {
 						throw new Error(`Failed to initialize audio: ${error.message}`);
 					}
@@ -462,7 +449,6 @@ export function CallUI({ friendId, friendName, onCallEnd, autoStart = false }: C
 						updateStats();
 					} catch (error: any) {
 						console.error('Failed to send audio chunk:', error);
-						addLog(`Audio send error: ${error.message}`, 'error');
 					}
 				},
 
@@ -477,7 +463,7 @@ export function CallUI({ friendId, friendName, onCallEnd, autoStart = false }: C
 						}
 
 					} catch (error: any) {
-						addLog(`Error parsing message: ${error.message}`, 'error');
+						console.error(`Error parsing message: ${error.message}`);
 					}
 				},
 
@@ -509,7 +495,7 @@ export function CallUI({ friendId, friendName, onCallEnd, autoStart = false }: C
 						}
 
 					} catch (error: any) {
-						addLog(`Error processing incoming audio: ${error.message}`, 'error');
+						console.error(`Error processing incoming audio: ${error.message}`);
 					}
 				},
 
@@ -608,7 +594,6 @@ export function CallUI({ friendId, friendName, onCallEnd, autoStart = false }: C
 						}
 
 					} catch (error: any) {
-						addLog(`Error playing audio chunk: ${error.message}`, 'error');
 						this.nextScheduledTime = this.audioContext.currentTime;
 					}
 				},
@@ -616,7 +601,6 @@ export function CallUI({ friendId, friendName, onCallEnd, autoStart = false }: C
 				toggleMute() {
 					this.isMuted = !this.isMuted;
 					setMuted(this.isMuted);
-					addLog(`Microphone ${this.isMuted ? 'muted' : 'unmuted'}`, 'info');
 				},
 
 				clearAudioQueue() {
@@ -628,7 +612,6 @@ export function CallUI({ friendId, friendName, onCallEnd, autoStart = false }: C
 					}
 
 					updateStats();
-					addLog('Audio queues cleared', 'info');
 				},
 
 				disconnect() {
@@ -690,7 +673,6 @@ export function CallUI({ friendId, friendName, onCallEnd, autoStart = false }: C
 
 					setMuted(false);
 					updateStats();
-					addLog('Disconnected', 'warning');
 				}
 			};
 
@@ -699,7 +681,6 @@ export function CallUI({ friendId, friendName, onCallEnd, autoStart = false }: C
 
 		} catch (err: any) {
 			console.error('Error initializing audio client:', err);
-			addLog(`Error initializing audio client: ${err.message}`, 'error');
 			setConnecting(false);
 		}
 	};
@@ -717,7 +698,6 @@ export function CallUI({ friendId, friendName, onCallEnd, autoStart = false }: C
 			gainNodeRef.current.gain.value = !speakerMuted ? 0 : 1;
 		}
 
-		addLog(`Speaker ${!speakerMuted ? 'muted' : 'unmuted'}`, 'info');
 	};
 
 	const handleDisconnect = async () => {
@@ -733,7 +713,6 @@ export function CallUI({ friendId, friendName, onCallEnd, autoStart = false }: C
 
 		try {
 			setHangingUp(true);
-			addLog('Ending call...', 'info');
 
 			await fetch('/graphql', {
 				method: 'POST',
@@ -757,7 +736,6 @@ export function CallUI({ friendId, friendName, onCallEnd, autoStart = false }: C
 				})
 			});
 
-			addLog('Call ended successfully', 'success');
 			toast.success('Call ended successfully');
 
 			if (audioClientRef.current) {
@@ -776,7 +754,6 @@ export function CallUI({ friendId, friendName, onCallEnd, autoStart = false }: C
 
 		} catch (err: any) {
 			console.error('Error hanging up call:', err);
-			addLog(`Error ending call: ${err.message}`, 'error');
 			toast.error('Failed to end call');
 
 			if (audioClientRef.current) {

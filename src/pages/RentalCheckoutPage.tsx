@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, CreditCard, CircleAlert as AlertCircle, CircleCheck as CheckCircle, ChevronDown, ChevronUp, Package, Calendar, Clock, Loader as Loader2, CreditCard as Edit2, Wallet, MapPin, Home, Building, Hotel, Plus } from 'lucide-react';
+import { ArrowLeft, CreditCard, CircleAlert as AlertCircle, CircleCheck as CheckCircle, Package, Calendar, Clock, Loader as Loader2, Wallet, MapPin, Home, Building, Hotel, Plus } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import QRPaymentModal from '../components/QRPaymentModal';
 import { useRentPrice } from '../hooks/rent/useRentPrice';
@@ -11,6 +11,7 @@ import AddAddressModal from '../components/AddAddressModal';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { useRentProductMutation } from "../hooks/rent/useRentProductMutation";
+import { RENTAL_HISTORY_BASE_KEY } from "../hooks/rent/useRentalHistory";
 import {toast} from 'react-hot-toast';
 
 interface SubscriptionProduct {
@@ -123,7 +124,7 @@ const RentalCheckoutPage = () => {
 
     if (data?.data.success) {
       queryClient.invalidateQueries([RENTAL_HISTORY_BASE_KEY]);
-      navigate('/profile?tab=rental-history');
+      navigate('/profile/rental-history');
       rentProductMutation.reset();      
     }
 

@@ -38,7 +38,18 @@ import UserSubscriptionsPage from '../pages/UserSubscriptionsPage';
 import RentalBrandsPage from '../pages/RentalBrandsPage';
 import RentalCheckoutPage from '../pages/RentalCheckoutPage';
 
-
+// Import profile tab components
+import ProfileTabContent from '../components/ProfileTabContent';
+import PaymentMethodsComponent from '../components/PaymentMethodsComponent';
+import AddressesComponent from '../components/AddressesComponent';
+import OrderHistoryComponent from '../components/OrderHistoryComponent';
+import RentalHistoryComponent from '../components/RentalHistoryComponent';
+import SettingsComponent from '../components/SettingsComponent';
+import MoneySaved from '../components/MoneySaved';
+import BlogsComponent from '../components/BlogsComponent';
+import MailboxComponent from '../components/MailboxComponent';
+import HelpSupportComponent from '../components/HelpSupportComponent';
+import AppInfoComponent from '../components/AppInfoComponent';
 
 export const router = createBrowserRouter([
 	{
@@ -114,6 +125,19 @@ export const router = createBrowserRouter([
 						<ProfilePage />
 					</ProtectedRoute>
 				),
+				children: [
+					{ index: true, element: <ProfileTabContent /> },
+					{ path: 'payment', element: <PaymentMethodsComponent /> },
+					{ path: 'addresses', element: <AddressesComponent /> },
+					{ path: 'order-history', element: <OrderHistoryComponent /> },
+					{ path: 'rental-history', element: <RentalHistoryComponent /> },
+					{ path: 'settings', element: <SettingsComponent /> },
+					{ path: 'money-saved', element: <MoneySaved /> },
+					{ path: 'blogs', element: <BlogsComponent /> },
+					{ path: 'mailbox', element: <MailboxComponent /> },
+					{ path: 'help', element: <HelpSupportComponent /> },
+					{ path: 'app-info', element: <AppInfoComponent /> },
+				],
 			},
 			{
 				path: '/friends',

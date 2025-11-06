@@ -3,8 +3,8 @@ import WhatsAppMessageModal from './WhatsAppMessageModal';
 import { useLanguageStore } from '../store/languageStore';
 import { X, Phone, MessageSquare, Star, MessageCircleMore } from 'lucide-react';
 import ServiceDetailModal from './ServiceDetailModal';
-import {useNavigate} from 'react-router-dom';
-import {toast} from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import { CallUI } from './CallUI';
 
 
@@ -53,7 +53,7 @@ function FriendInfoModal({
 	const [showMessageModal, setShowMessageModal] = useState(false);
 	const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
 
-  const navigate = useNavigate();
+	const navigate = useNavigate();
 
 	const { t } = useLanguageStore();
 
@@ -122,18 +122,18 @@ function FriendInfoModal({
 		}
 	};
 
-  const handleChatWithUser = async () => {
-    if (!userId || !userAuthToken) return;
-    
-    try {
-      const response = await fetch('https://db.subspace.money/v1/graphql', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${userAuthToken}`
-        },
-        body: JSON.stringify({
-          query: `
+	const handleChatWithUser = async () => {
+		if (!userId || !userAuthToken) return;
+
+		try {
+			const response = await fetch('https://db.subspace.money/v1/graphql', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${userAuthToken}`
+				},
+				body: JSON.stringify({
+					query: `
             mutation createPrivateRoom($user_id: uuid!, $other_id: uuid!) {
               __typename
               createAnonymousRoom(request: {other_id: $other_id, user_id: $user_id}) {
@@ -142,34 +142,34 @@ function FriendInfoModal({
               }
             }
           `,
-          variables: {
-            user_id: userId,
-            other_id: friendId
-          }
-        })
-      });
+					variables: {
+						user_id: userId,
+						other_id: friendId
+					}
+				})
+			});
 
-      const data = await response.json();
-      
-      if (data.errors) {
-        console.error('Error creating chat room:', data.errors);
-        return;
-      }
-      
-      const roomId = data.data?.createAnonymousRoom?.id;
-      if (roomId) {
-        // Navigate to chat page with the created room
-        navigate(`/chat?groupId=${roomId}`);
-      }
-    } catch (error) {
-      toast.error('Failed to create chat: ', error.message);
-      console.error('Error creating private room:', error);
-    }
-  };
+			const data = await response.json();
 
- const handleCommonGroupClick = (groupId: string) => {
-  navigate('/chat?groupId=' + groupId);
-};
+			if (data.errors) {
+				console.error('Error creating chat room:', data.errors);
+				return;
+			}
+
+			const roomId = data.data?.createAnonymousRoom?.id;
+			if (roomId) {
+				// Navigate to chat page with the created room
+				navigate(`/chat?groupId=${roomId}`);
+			}
+		} catch (error) {
+			toast.error('Failed to create chat: ', error.message);
+			console.error('Error creating private room:', error);
+		}
+	};
+
+	const handleCommonGroupClick = (groupId: string) => {
+		navigate('/chat?groupId=' + groupId);
+	};
 
 
 	return (
@@ -203,12 +203,12 @@ function FriendInfoModal({
 											<p className="text-xs sm:text-sm text-gray-400 truncate">{t('chat.lastActive')}: {new Date(friendProfile.info?.last_active).toLocaleString()}</p>
 										</div>
 
-                    <button
-                      onClick={handleChatWithUser}
-                      className="p-2 hover:bg-dark-400 rounded-lg transition-colors"
-                      >
-                       <MessageCircleMore className="w-6 h-6 sm:w-8 sm:h-8"/>
-                    </button>
+										<button
+											onClick={handleChatWithUser}
+											className="p-2 hover:bg-dark-400 rounded-lg transition-colors"
+										>
+											<MessageCircleMore className="w-6 h-6 sm:w-8 sm:h-8" />
+										</button>
 									</div>
 									<button
 										onClick={closeModal}
@@ -232,7 +232,6 @@ function FriendInfoModal({
 									<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6 pt-4 sm:pt-6">
 										<button
 											onClick={() => {
-												// toast.success("Website call coming very soon!");
 												setIsCallActive(true);
 											}}
 											className="flex-1 py-2.5 sm:py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
@@ -254,9 +253,9 @@ function FriendInfoModal({
 									</div>
 								) : (
 									<div className="pt-4">
-											<CallUI 
-												friendId={friendId}
-												friendName={friendName}
+										<CallUI
+											friendId={friendId}
+											friendName={friendName}
 											autoStart={true}
 											onCallEnd={() => setIsCallActive(false)}
 										/>
@@ -266,13 +265,13 @@ function FriendInfoModal({
 
 							{/* Subscriptions */}
 							<div className="p-4 sm:p-6 border-b border-gray-700/50">
-                {friendProfile?.subscriptions.length > 0 && <h3 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 flex items-center gap-2">
+								{friendProfile?.subscriptions.length > 0 && <h3 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 flex items-center gap-2">
 									<Star className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-400" />
 									{t('friends.activeSubscriptions')}
 								</h3>}
 								<div className="flex items-center space-x-4 overflow-scroll hide-scrollbar">
 									{friendProfile?.subscriptions.map((sub, index) => (
-										<div key={index} 
+										<div key={index}
 											className="relative w-[150px] sm:w-[175px] shrink-0 bg-dark-400 rounded-xl p-3 sm:p-4 hover:bg-dark-300 transition-colors">
 											{sub.type === 'admin' && (
 												<div className="mb-3 absolute top-1 right-1">
@@ -282,7 +281,7 @@ function FriendInfoModal({
 												</div>
 											)}
 
-                      	{sub.type === 'member' && (
+											{sub.type === 'member' && (
 												<div className="mb-3 absolute top-1 right-1">
 													<span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-1 rounded-full font-medium">
 														Member
@@ -311,11 +310,11 @@ function FriendInfoModal({
 										</h3>
 										<div className="space-y-2 sm:space-y-3">
 											{friendProfile?.commonGroups.map((group) => (
-												<div 
-                          key={group.id} 
-                          className="flex items-center space-x-2 sm:space-x-3 p-2 sm:p-3 bg-dark-400 rounded-xl hover:bg-dark-300 transition-colors cursor-pointer"
-                          onClick={() => handleCommonGroupClick(group.id)}
-                          >
+												<div
+													key={group.id}
+													className="flex items-center space-x-2 sm:space-x-3 p-2 sm:p-3 bg-dark-400 rounded-xl hover:bg-dark-300 transition-colors cursor-pointer"
+													onClick={() => handleCommonGroupClick(group.id)}
+												>
 													<div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg overflow-hidden bg-white p-1">
 														<img
 															src={group.room_dp}
