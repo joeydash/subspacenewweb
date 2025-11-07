@@ -1,24 +1,40 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { updatePrivacySettings } from '../../api/settings';
+import { PRIVACY_SETTINGS_BASE_KEY } from './usePrivacySettings';
+import { toast } from 'react-hot-toast';
 
-export const useUpdatePrivacySettings = () => {
-  const queryClient = useQueryClient();
+interface UseUpdatePrivacySettingsParams {
+	authToken: string;
+	userId: string;
+}
 
-  return useMutation({
-    mutationFn: ({
-      authToken,
-      userId,
-      hidePhoneNumber,
-      hideEmailId,
-    }: {
-      authToken: string;
-      userId: string;
-      hidePhoneNumber: boolean;
-      hideEmailId: boolean;
-    }) => updatePrivacySettings(authToken, userId, hidePhoneNumber, hideEmailId),
-    onSuccess: (_, variables) => {
-      // Invalidate and refetch privacy settings
-      queryClient.invalidateQueries({ queryKey: ['privacySettings', variables.userId] });
-    },
-  });
+
+export const useUpdatePrivacySettings = ({ userId, authToken }: UseUpdatePrivacySettingsParams) => {
+	return useMutation({
+		mutationFn: ({
+			hidePhoneNumber,
+			hideEmailId,
+		}: {
+			hidePhoneNumber: boolean;
+			hideEmailId: boolean;
+		}) => updatePrivacySettings(authToken, userId, hidePhoneNumber, hideEmailId),
+		onMutate: async (newSettings, context) => {
+			await context.client.cancelQueries({ queryKey: [PRIVACY_SETTINGS_BASE_KEY, userId] });
+
+			const previousSettings = context.client.getQueryData<{ hide_phone_number: boolean; hide_email_id: boolean }>([PRIVACY_SETTINGS_BASE_KEY, userId]);
+			context.client.setQueryData([PRIVACY_SETTINGS_BASE_KEY, userId], {
+				hide_phone_number: newSettings.hidePhoneNumber,
+				hide_email_id: newSettings.hideEmailId,
+			});
+
+
+			return { previousSettings };
+		},
+		onError: (err, _newSettings, onMutateResult, context) => {
+			toast.error(err.message || 'Failed to update privacy settings. Please try again.');
+			if (context && onMutateResult?.previousSettings) {
+				context.client.setQueryData([PRIVACY_SETTINGS_BASE_KEY, userId], onMutateResult.previousSettings);
+			}
+		}
+	});
 };

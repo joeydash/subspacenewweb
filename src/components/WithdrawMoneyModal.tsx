@@ -327,7 +327,7 @@ const WithdrawMoneyModal: React.FC<WithdrawMoneyModalProps> = ({
       if (data.data?.whatsubWithdrawAmount?.affected_rows > 0) {
         // Successfully processed withdrawal
         onSuccess?.();
-        onClose();
+        onClose?.();
         setAmount('');
       } else {
         const errorMessage = 'Withdrawal failed. Please try again.';

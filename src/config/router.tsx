@@ -44,7 +44,7 @@ import PaymentMethodsComponent from '../components/PaymentMethodsComponent';
 import AddressesComponent from '../components/AddressesComponent';
 import OrderHistoryComponent from '../components/OrderHistoryComponent';
 import RentalHistoryComponent from '../components/RentalHistoryComponent';
-import SettingsComponent from '../components/SettingsComponent';
+import SettingsComponent from '../components/SettingsComponent.backup';
 import MoneySaved from '../components/MoneySaved';
 import BlogsComponent from '../components/BlogsComponent';
 import MailboxComponent from '../components/MailboxComponent';

@@ -61,7 +61,6 @@ interface BrandCategoriesSkeletonProps {
 
 export const BrandCategoriesSkeleton: React.FC<BrandCategoriesSkeletonProps> = ({ count = 8 }) => {
   return (
-    <SkeletonTheme baseColor="#2a2a2a" highlightColor="#3a3a3a" duration={1.5}>
       <div className="mb-6">
         <div className="relative">
           <div className="overflow-x-auto pb-2 hide-scrollbar">
@@ -85,7 +84,6 @@ export const BrandCategoriesSkeleton: React.FC<BrandCategoriesSkeletonProps> = (
           </div>
         </div>
       </div>
-    </SkeletonTheme>
   );
 };
 

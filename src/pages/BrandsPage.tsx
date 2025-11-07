@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { ArrowLeft, Search, ArrowUpDown } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useLanguageStore } from '../store/languageStore';
 import { BrandsPageSkeleton } from '../skeletons/BrandsPageSkeleton';
 import { useBrands } from '../hooks/brands/useBrands';
@@ -13,29 +13,20 @@ const BrandsPage = () => {
 	const { user } = useAuthStore();
 	const { t } = useLanguageStore();
 	const [searchQuery, setSearchQuery] = useState('');
-	const [selectedCategory, setSelectedCategory] = useState<string>('All');
+	const [searchParams, setSearchParams] = useSearchParams();
+	const selectedCategory = searchParams.get('category') || 'All';
 
 	const storedSort = localStorage.getItem(SORT_STORAGE_KEY) as 'default' | 'discount' | null;
 
 	const [sortBy, setSortBy] = useState<'default' | 'discount'>(storedSort || 'default');
 	const [showSortDropdown, setShowSortDropdown] = useState(false);
 	const sortDropdownRef = useRef<HTMLDivElement>(null);
-	const location = useLocation();
 
 	const { data, isLoading } = useBrands({ userId: user?.id ?? '', authToken: user?.auth_token ?? '' });
 
 	const brands = data?.brands || [];
 	const categories = data?.categories || ['All'];
 
-	useEffect(() => {
-		const params = new URLSearchParams(location.search);
-		const categoryParam = params.get('category');
-		if (categoryParam) {
-			setSelectedCategory(categoryParam);
-		}
-	}, [location.search]);
-
-	
 
 	const handleSortChange = (value: 'default' | 'discount') => {
 		setSortBy(value);
@@ -153,13 +144,16 @@ const BrandsPage = () => {
 									{Array.from(categories).map((category) => (
 										<button
 											key={category}
-											onClick={() => setSelectedCategory(category)}
+											onClick={() => {
+												searchParams.set('category', category);
+												setSearchParams(searchParams);
+											}}
 											className={`flex-shrink-0 px-4 py-2 rounded-full text-xs font-medium transition-all duration-200 ${selectedCategory === category
 													? 'bg-slate-600 text-white shadow-lg hover:bg-slate-500'
 													: 'bg-slate-800/50 text-gray-400 hover:bg-slate-700/50 hover:text-white border border-slate-700/50'
 												}`}
 										>
-											{category === 'All' ? t('common.all') : t(`brands.${category.replace(/\s+/g, "").replace(/^./, c => c.toLowerCase())}`)}
+											{category === 'All' ? t('common.all') : category}
 										</button>
 									))}
 								</div>

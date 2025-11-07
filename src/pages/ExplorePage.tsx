@@ -71,7 +71,7 @@ const CarouselSection = ({ isAuthenticated, user }: CarouselSectionProps) => {
 		if (carousels?.length === 0) return;
 
 		const interval = setInterval(() => {
-			setCurrentSlide((prev) => (prev + 1) % carousels.length);
+			setCurrentSlide((prev) => (prev + 1) % carousels?.length);
 		}, 5000);
 
 		return () => clearInterval(interval);

@@ -195,8 +195,7 @@ const WalletPage = () => {
 	const handlePaymentSuccess = () => {
 		setAmount('');
 		setError(null);
-		queryClient.invalidateQueries([WALLET_BALANCE_BASE_KEY]);
-		setTransactionRefreshTrigger(prev => prev + 1);
+		queryClient.invalidateQueries({queryKey: [WALLET_BALANCE_BASE_KEY]});
 	};
 
 	const handlePaymentError = (errorMessage: string) => {
@@ -204,8 +203,7 @@ const WalletPage = () => {
 	};
 
 	const handleWithdrawSuccess = () => {
-		queryClient.invalidateQueries([WALLET_BALANCE_BASE_KEY]);
-		setTransactionRefreshTrigger(prev => prev + 1);
+		queryClient.invalidateQueries({queryKey: [WALLET_BALANCE_BASE_KEY]});
 	};
 
 

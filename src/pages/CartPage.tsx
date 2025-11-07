@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Trash2, ShoppingBag, ArrowRight, Plus, Minus } from 'lucide-react';
-import {useQueryClient} from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from '../store/authStore';
 import QRPaymentModal from '../components/QRPaymentModal';
 import { useLanguageStore } from '../store/languageStore';
@@ -51,11 +51,11 @@ const CartPage = () => {
 
 
 	const { data: cartData, isLoading: isCartItemsLoading, error: cartDataError } = useCart(user);
-	const addToCartMutation = useAddToCartMutation({ user_id: user?.id, auth_token: user?.auth_token });
-	const removeFromCartMutation = useRemoveFromCartMutation({ user_id: user?.id, auth_token: user?.auth_token });
+	const addToCartMutation = useAddToCartMutation({ user_id: user?.id || '', auth_token: user?.auth_token || '' });
+	const removeFromCartMutation = useRemoveFromCartMutation({ user_id: user?.id || '', auth_token: user?.auth_token || '' });
 
-	const { data } = useWalletBalance({ userId: user?.id, authToken: user?.auth_token });
-	const unlockedAmount = data?.unlocked_amount;
+	const { data } = useWalletBalance({ userId: user?.id || '', authToken: user?.auth_token || '' });
+	const unlockedAmount = data?.unlocked_amount || 0;
 
 	const queryClient = useQueryClient();
 
@@ -154,6 +154,19 @@ const CartPage = () => {
 		}
 	};
 
+	const handlePaymentSuccess = () => {
+		setShowPaymentModal(false);
+
+		setCheckoutSuccess(true);
+		queryClient.invalidateQueries({ queryKey: [RENTAL_HISTORY_BASE_KEY, user?.id] });
+		queryClient.invalidateQueries({ queryKey: [CART_BASE_KEY, user?.id] });
+		queryClient.invalidateQueries({ queryKey: [WALLET_BALANCE_BASE_KEY, user?.id] });
+		queryClient.invalidateQueries({ queryKey: [TRANSACTIONS_BASE_KEY, user?.id] });
+
+		setTimeout(() => {
+			navigate('/profile/order-history');
+		}, 1000);
+	};
 
 	const handlePayment = async () => {
 		if (!user?.id || !user?.auth_token) {
@@ -171,15 +184,15 @@ const CartPage = () => {
 				},
 				body: JSON.stringify({
 					query: `
-           mutation MyMutation($order_id: uuid = "", $user_id: uuid = "", $coupon_code: String = "") {
-              __typename
-              whatsubPurchaseCart(request: {order_id: $order_id, user_id: $user_id, coupon_code: $coupon_code}) {
-                __typename
-                affected_rows
-                details
-              }
-            }
-          `,
+						mutation MyMutation($order_id: uuid = "", $user_id: uuid = "", $coupon_code: String = "") {
+							__typename
+							whatsubPurchaseCart(request: {order_id: $order_id, user_id: $user_id, coupon_code: $coupon_code}) {
+								__typename
+								affected_rows
+								details
+							}
+							}
+						`,
 					variables: {
 						user_id: user.id,
 						order_id: cartData?.id,
@@ -194,7 +207,6 @@ const CartPage = () => {
 				return;
 			}
 
-
 			const result = data.data?.whatsubPurchaseCart;
 			const amountRequired = result?.details?.amount_required;
 			const orderId = result?.details?.order_id;
@@ -205,10 +217,8 @@ const CartPage = () => {
 				setPendingPaymentAmount(requiredAmount);
 				setShowPaymentModal(true);
 			} else if (orderId) {
-
+				handlePaymentSuccess();
 				toast.success('Purchase Successuful');
-
-				setTimeout(() => navigate('/profile?tab=order-history'), 1000);
 			} else {
 				toast.error('Payment Failed');
 			}
@@ -218,20 +228,6 @@ const CartPage = () => {
 		} finally {
 			setIsProcessing(false);
 		}
-	};
-
-	const handlePaymentSuccess = () => {
-		setShowPaymentModal(false);
-
-		setCheckoutSuccess(true);
-		queryClient.invalidateQueries([RENTAL_HISTORY_BASE_KEY, user?.id]);
-		queryClient.invalidateQueries([CART_BASE_KEY, user?.id]);
-		queryClient.invalidateQueries([WALLET_BALANCE_BASE_KEY, user?.id]);
-		queryClient.invalidateQueries([TRANSACTIONS_BASE_KEY, user?.id]);
-		
-		setTimeout(() => {
-			navigate('/profile/order-history');
-		}, 1000);
 	};
 
 
@@ -387,8 +383,8 @@ const CartPage = () => {
 										onClick={handleApplyCoupon}
 										disabled={isApplyingCoupon || !couponCode.trim()}
 										className={`px-4 py-1 rounded-r border border-l-0 transition-colors ${isApplyingCoupon || !couponCode.trim()
-												? 'bg-dark-400 border-gray-700 text-gray-500 cursor-not-allowed'
-												: 'bg-indigo-500 border-indigo-500 text-white hover:bg-indigo-600'
+											? 'bg-dark-400 border-gray-700 text-gray-500 cursor-not-allowed'
+											: 'bg-indigo-500 border-indigo-500 text-white hover:bg-indigo-600'
 											}`}
 									>
 										{isApplyingCoupon ? 'Applying' : t('common.apply')}
@@ -458,7 +454,7 @@ const CartPage = () => {
 				isOpen={showPaymentModal}
 				onClose={() => setShowPaymentModal(false)}
 				amount={pendingPaymentAmount}
-				onSuccess={handlePaymentSuccess}
+				onSuccess={handlePayment}
 				onError={toast.error}
 				title={t('cart.completePayment')}
 				description={t('cart.addMoneyToComplete')}

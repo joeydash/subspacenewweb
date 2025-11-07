@@ -3,13 +3,15 @@ import { LockKeyhole, ChevronUp, ChevronDown } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { usePrivacySettings } from '../../hooks/settings/usePrivacySettings';
 import { useUpdatePrivacySettings } from '../../hooks/settings/useUpdatePrivacySettings';
+import Skeleton from 'react-loading-skeleton';
 
 const PrivacySettingsComponent = () => {
 	const { user } = useAuthStore();
 	const [isExpanded, setIsExpanded] = useState(false);
 
+
 	const { data: privacySettings, isLoading: isLoadingPrivacySettings, error: privacySettingsError, refetch } = usePrivacySettings(user?.auth_token, user?.id);
-	const updateMutation = useUpdatePrivacySettings();
+	const updateMutation = useUpdatePrivacySettings({ userId: user?.id || '', authToken: user?.auth_token || '' });
 
 	const hidePhoneNumber = privacySettings?.hide_phone_number || false;
 	const hideEmailId = privacySettings?.hide_email_id || false;
@@ -19,8 +21,6 @@ const PrivacySettingsComponent = () => {
 
 		const newValue = !hidePhoneNumber;
 		updateMutation.mutate({
-			authToken: user.auth_token,
-			userId: user.id,
 			hidePhoneNumber: newValue,
 			hideEmailId: hideEmailId,
 		});
@@ -31,8 +31,6 @@ const PrivacySettingsComponent = () => {
 
 		const newValue = !hideEmailId;
 		updateMutation.mutate({
-			authToken: user.auth_token,
-			userId: user.id,
 			hidePhoneNumber: hidePhoneNumber,
 			hideEmailId: newValue,
 		});
@@ -55,12 +53,7 @@ const PrivacySettingsComponent = () => {
 				)}
 			</button>
 			{isExpanded && (
-				isLoadingPrivacySettings ? (
-					<div className="text-center py-6 sm:py-8">
-						<div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-indigo-500 mx-auto"></div>
-						<p className="text-gray-400 mt-2 text-xs sm:text-sm">Loading privacy settings...</p>
-					</div>
-				) : privacySettingsError ? (
+				privacySettingsError ? (
 					<div className="text-center py-6 sm:py-8 px-2">
 						<div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 sm:p-4 mb-4">
 							<p className="text-red-400 mb-3 sm:mb-4 text-xs sm:text-sm">{privacySettingsError.message || 'Failed to load privacy settings'}</p>
@@ -84,18 +77,22 @@ const PrivacySettingsComponent = () => {
 								<h4 className="text-sm sm:text-base font-medium text-white">Hide Phone Number</h4>
 								<p className="text-xs sm:text-sm text-gray-400 mt-0.5">Your phone number won't be visible to others</p>
 							</div>
-							<button
-								onClick={handlePhoneNumberToggle}
-								className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-dark-600 ${
-									hidePhoneNumber ? 'bg-indigo-600' : 'bg-gray-600'
-								}`}
-							>
-								<span
-									className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-										hidePhoneNumber ? 'translate-x-6' : 'translate-x-1'
+							{isLoadingPrivacySettings ? (
+								<Skeleton height={24} width={44} borderRadius={12} />
+							) : (
+								<button
+									onClick={handlePhoneNumberToggle}
+									className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-dark-600 ${
+										hidePhoneNumber ? 'bg-indigo-600' : 'bg-gray-600'
 									}`}
-								/>
-							</button>
+								>
+									<span
+										className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+											hidePhoneNumber ? 'translate-x-6' : 'translate-x-1'
+										}`}
+									/>
+								</button>
+							)}
 						</div>
 
 						{/* Hide Email Id */}
@@ -104,18 +101,22 @@ const PrivacySettingsComponent = () => {
 								<h4 className="text-sm sm:text-base font-medium text-white">Hide Email Address</h4>
 								<p className="text-xs sm:text-sm text-gray-400 mt-0.5">Your email won't be visible to others</p>
 							</div>
-							<button
-								onClick={handleEmailToggle}
-								className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-dark-600 ${
-									hideEmailId ? 'bg-indigo-600' : 'bg-gray-600'
-								}`}
-							>
-								<span
-									className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-										hideEmailId ? 'translate-x-6' : 'translate-x-1'
+							{isLoadingPrivacySettings ? (
+								<Skeleton height={24} width={44} borderRadius={12} />
+							) : (
+								<button
+									onClick={handleEmailToggle}
+									className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-dark-600 ${
+										hideEmailId ? 'bg-indigo-600' : 'bg-gray-600'
 									}`}
-								/>
-							</button>
+								>
+									<span
+										className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+											hideEmailId ? 'translate-x-6' : 'translate-x-1'
+										}`}
+									/>
+								</button>
+							)}
 						</div>
 					</div>
 				)
