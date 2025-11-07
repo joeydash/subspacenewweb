@@ -18,7 +18,6 @@ export default function ToastConfig() {
         },
         success: { iconTheme: { primary: '#22c55e', secondary: '#1f1f1f' } },
         error: { iconTheme: { primary: '#ef4444', secondary: '#1f1f1f' } },
-        info: { iconTheme: { primary: '#3b82f6', secondary: '#1f1f1f' } },
         warning: { iconTheme: { primary: '#f59e0b', secondary: '#1f1f1f' } },
       }}
     />

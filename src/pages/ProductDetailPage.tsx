@@ -164,45 +164,43 @@ const FlexiPaySection = ({ serviceDetails, isAuthenticated, onLoginRequired }: F
 			const data = await response.json();
 			if (data.data?.whatsubAddAmountToCart?.affected_rows > 0) {
 				setFlexiPayAmount('');
-				toast.custom((t) => (
+				toast((t) => (
 					<div
 						className={`${t.visible ? 'animate-enter' : 'animate-leave'
-							} mx-3 sm:mx-0 max-w-sm sm:max-w-md w-full bg-dark-400 shadow-xl rounded-xl sm:rounded-2xl pointer-events-auto border border-gray-700`}
+							} bg-dark-400 shadow-xl pointer-events-auto`}
 					>
-						<div className="p-3 sm:p-4">
-							<div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
-								<div className="flex-shrink-0">
-									<div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-green-600 flex items-center justify-center">
-										<ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-									</div>
+						<div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+							<div className="flex-shrink-0">
+								<div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-green-600 flex items-center justify-center">
+									<ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
 								</div>
-								<div className="flex-1 min-w-0">
-									<p className="text-sm sm:text-base font-bold text-white mb-0.5 truncate">
-										Added to Cart! 🎉
-									</p>
-									<p className="text-xs sm:text-sm text-gray-300 truncate">
-										<span className="font-semibold text-green-400">₹{calculateFlexiPayAmount().toFixed(2)}</span> FlexiPay
-									</p>
-								</div>
-								<button
-									onClick={() => toast.dismiss(t.id)}
-									className="flex-shrink-0 text-gray-400 hover:text-white transition-colors p-1 hover:bg-gray-700 rounded-lg"
-								>
-									<X className="h-4 w-4 sm:h-5 sm:w-5" />
-								</button>
 							</div>
-							
+							<div className="flex-1 min-w-0">
+								<p className="text-sm sm:text-base font-bold text-white mb-0.5 truncate">
+									Added to Cart! 🎉
+								</p>
+								<p className="text-xs sm:text-sm text-gray-300 truncate">
+									<span className="font-semibold text-green-400">₹{calculateFlexiPayAmount().toFixed(2)}</span> FlexiPay
+								</p>
+							</div>
 							<button
-								onClick={() => {
-									toast.dismiss(t.id);
-									navigate('/cart');
-								}}
-								className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg sm:rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 text-sm sm:text-base"
+								onClick={() => toast.dismiss(t.id)}
+								className="flex-shrink-0 text-gray-400 hover:text-white transition-colors p-1 hover:bg-gray-700 rounded-lg"
 							>
-								<ShoppingCart className="h-4 w-4" />
-								View Cart
+								<X className="h-4 w-4 sm:h-5 sm:w-5" />
 							</button>
 						</div>
+
+						<button
+							onClick={() => {
+								toast.dismiss(t.id);
+								navigate('/cart');
+							}}
+							className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg sm:rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 text-sm sm:text-base"
+						>
+							<ShoppingCart className="h-4 w-4" />
+							View Cart
+						</button>
 					</div>
 				), {
 					duration: 2000,
@@ -275,8 +273,8 @@ const FlexiPaySection = ({ serviceDetails, isAuthenticated, onLoginRequired }: F
 								key={index}
 								onClick={() => setFlexiPayAmount(amount.toString())}
 								className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${flexiPayAmount === amount.toString()
-										? 'bg-blue-500 text-white'
-										: 'bg-dark-300 text-gray-400 hover:bg-dark-200 hover:text-white'
+									? 'bg-blue-500 text-white'
+									: 'bg-dark-300 text-gray-400 hover:bg-dark-200 hover:text-white'
 									}`}
 							>
 								₹{amount}
@@ -306,8 +304,8 @@ const FlexiPaySection = ({ serviceDetails, isAuthenticated, onLoginRequired }: F
 					}}
 					disabled={!isFlexiPayValid() || isProcessingFlexiPay}
 					className={`w-full py-2.5 sm:py-3 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 ${isFlexiPayValid() && !isProcessingFlexiPay
-							? 'bg-blue-500 hover:bg-blue-600 text-white'
-							: 'bg-gray-600 text-gray-400 cursor-not-allowed'
+						? 'bg-blue-500 hover:bg-blue-600 text-white'
+						: 'bg-gray-600 text-gray-400 cursor-not-allowed'
 						}`}
 				>
 					{isProcessingFlexiPay ? (
