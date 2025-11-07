@@ -310,6 +310,84 @@ export interface Address {
 	longitude: string;
 }
 
+export interface RentBrand {
+	id: string;
+	service_name: string;
+	image_url?: string;
+	poster2_url?: string;
+	poster2_blurhash?: string;
+	backdrop_url?: string;
+	backdrop_blurhash?: string;
+	blurhash?: string;
+	flexipay?: string;
+	flexipay_discount?: string;
+	flexipay_min?: string;
+	class?: string;
+	class_id?: string;
+}
+
+export interface FetchSubscriptionBrandsParams {
+	authToken: string;
+	userId: string;
+	address: Address;
+}
+
+export const fetchSubscriptionBrands = async ({
+	authToken,
+	userId,
+	address,
+}: FetchSubscriptionBrandsParams): Promise<{ brands: RentBrand[]; categories: string[] }> => {
+	if (!address?.latitude || !address?.longitude) {
+		return { brands: [], categories: ['All'] };
+	}
+
+	const response = await apiClient.post(
+		'',
+		{
+			query: `
+				query GetSubscriptionBrands(
+					$latitude: String!,
+					$longitude: String!,
+					$user_id: uuid
+				) {
+					getSubscriptionBrands(
+						request: {
+							latitude: $latitude,
+							longitude: $longitude,
+							user_id: $user_id
+						}
+					) {
+						whatsub_subscription_brands
+					}
+				}
+			`,
+			variables: {
+				latitude: address.latitude,
+				longitude: address.longitude,
+				user_id: userId || "",
+			},
+		},
+		{
+			headers: {
+				Authorization: `Bearer ${authToken || ""}`,
+			},
+		}
+	);
+
+	const fetchedBrands: RentBrand[] = 
+		response.data?.data?.getSubscriptionBrands?.whatsub_subscription_brands || [];
+
+	// Extract unique categories
+	const uniqueCategories = new Set(['All']);
+	fetchedBrands.forEach((brand) => {
+		if (brand.class) {
+			uniqueCategories.add(brand.class);
+		}
+	});
+
+	return { brands: fetchedBrands, categories: Array.from(uniqueCategories) };
+};
+
 export interface FetchRentProductBrandsParams {
 	authToken: string;
 	userId: string;

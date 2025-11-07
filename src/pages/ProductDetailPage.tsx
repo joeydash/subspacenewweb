@@ -204,7 +204,7 @@ const FlexiPaySection = ({ serviceDetails, isAuthenticated, onLoginRequired }: F
 					</div>
 				), {
 					duration: 2000,
-					position: 'top-right',
+					position: 'top-center',
 				});
 			} else {
 				toast.error('Failed to add item to cart');

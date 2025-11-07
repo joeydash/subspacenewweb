@@ -31,8 +31,6 @@ const RentProductClasses: React.FC = () => {
 	const { data: productClasses, isLoading } = useRentProductClasses({ userId: user?.id || '', authToken: user?.auth_token || '', address: (globalLocation ?? {}) as Record<string, unknown> });
 
 
-
-
 	if (isLoading) {
 		return (
 			<section className="mb-12">
@@ -74,7 +72,7 @@ const RentProductClasses: React.FC = () => {
 										{row.map((productClass) => (
 											<div
 												key={productClass.class_id}
-												onClick={() => navigate(`/rental-brands/${productClass.class_id}`)}
+												onClick={() => navigate(`/rental-brands?class=${productClass.class_name}`)}
 												className="w-64 h-40 rounded-xl overflow-hidden group cursor-pointer relative transition-all duration-300 transform hover:scale-105"
 												style={{
 													backgroundImage: `url(${productClass.poster})`,

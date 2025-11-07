@@ -66,7 +66,7 @@ export const router = createBrowserRouter([
 				),
 			},
 			{ path: '/all-brands', element: <BrandsPage /> },
-			{ path: '/rental-brands/:classId', element: <RentalBrandsPage /> },
+			{ path: '/rental-brands', element: <RentalBrandsPage /> },
 			{ path: '/products/:id', element: <ProductDetailPage /> },
 			{
 				path: '/payment/:id',

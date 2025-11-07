@@ -1,29 +1,26 @@
 import {useQuery} from '@tanstack/react-query';
-import { fetchRentProductBrands } from '../../api/rent';
+import { fetchSubscriptionBrands, Address } from '../../api/rent';
 
 export const useRentProductBrands = ({
   authToken,
   userId,
-  classId,
   address
 }: {
   authToken: string;
   userId: string;
-  classId: string;
-  address: Record<string, any>
+  address: Address | null
 }) => {
   const hasValidAddress = !!address?.latitude && !!address?.longitude;
 
   return useQuery({
-    queryKey: ['rent_product_brands', classId, address?.latitude, address?.longitude],
+    queryKey: ['subscription_brands', address?.latitude, address?.longitude, userId],
     queryFn: () =>
-      fetchRentProductBrands({
+      fetchSubscriptionBrands({
         authToken,
         userId,
-        classId,
-        address,
+        address: address as Address,
       }),
-    enabled: !!classId && hasValidAddress,
+    enabled: hasValidAddress,
     staleTime: 5 * 60 * 1000,
   });
 };

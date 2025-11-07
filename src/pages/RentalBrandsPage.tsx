@@ -1,41 +1,34 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { ArrowLeft, Search } from 'lucide-react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useLanguageStore } from '../store/languageStore';
 import { BrandsPageSkeleton } from '../skeletons/BrandsPageSkeleton';
 
 import { useRentProductBrands } from '../hooks/rent/useRentProductBrands';
 import { useCurrentLocation } from '../context/LocationContext';
 
-interface Service {
-	id: string;
-	service_name: string;
-	image_url: string;
-	backdrop_url: string;
-	backdrop_blurhash: string;
-	blurhash: string;
-	poster2_url: string | null;
-	poster2_blurhash: string;
-	class: string;
-	class_id: string;
-	flexipay: string;
-	flexipay_discount: string;
-	flexipay_min: string;
-}
-
 const RentalBrandsPage = () => {
-	const { classId } = useParams<{ classId: string }>();
 	const { user } = useAuthStore();
 	const { t } = useLanguageStore();
 	const [searchQuery, setSearchQuery] = useState('');
+	const [searchParams, setSearchParams] = useSearchParams();
+	const selectedCategory = searchParams.get('category') || 'All';
 
 	const { location: globalLocation } = useCurrentLocation();
-	const { data: rentalBrands, isLoading } = useRentProductBrands({ userId: user?.id || '', authToken: user?.auth_token || '', classId: classId || '', address: globalLocation });
+	const { data, isLoading } = useRentProductBrands({ 
+		userId: user?.id || '', 
+		authToken: user?.auth_token || '', 
+		address: globalLocation 
+	});
 
+	const rentalBrands = data?.brands || [];
+	const categories = data?.categories || ['All'];
 
-	const filteredBrands = rentalBrands?.filter(brand => {
-		return brand.service_name.toLowerCase().includes(searchQuery.toLowerCase());
+	const filteredBrands = rentalBrands.filter(brand => {
+		const matchesSearch = brand.service_name.toLowerCase().includes(searchQuery.toLowerCase());
+		const matchesCategory = selectedCategory === 'All' || brand.class === selectedCategory;
+		return matchesSearch && matchesCategory;
 	});
 
 	return (
@@ -47,14 +40,14 @@ const RentalBrandsPage = () => {
 						<Link to="/" className="text-gray-400 hover:text-white transition-colors">
 							<ArrowLeft className="h-6 w-6" />
 						</Link>
-						<h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold">Brands</h1>
+						<h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold">{t('brands.title')}</h1>
 					</div>
 
 					{/* Search Bar */}
 					<div className="relative w-full">
 						<input
 							type="text"
-							placeholder="Search brands..."
+							placeholder={t('brands.searchPlaceHolder')}
 							value={searchQuery}
 							onChange={(e) => setSearchQuery(e.target.value)}
 							className="input pl-12 py-3 w-full rounded-2xl"
@@ -63,16 +56,44 @@ const RentalBrandsPage = () => {
 					</div>
 				</div>
 
-				{/* Services Grid */}
+				{/* Filters */}
+				{!isLoading && (
+					<div className="mb-6">
+						<div className="relative">
+							<div className="overflow-x-auto pb-2 hide-scrollbar">
+								<div className="flex space-x-2 px-1 min-w-max">
+									{Array.from(categories).map((category) => (
+										<button
+											key={category}
+											onClick={() => {
+												searchParams.set('category', category);
+												setSearchParams(searchParams);
+											}}
+											className={`flex-shrink-0 px-4 py-2 rounded-full text-xs font-medium ${
+												selectedCategory === category
+													? 'bg-slate-600 text-white shadow-lg hover:bg-slate-500'
+													: 'bg-slate-800/50 text-gray-400 hover:bg-slate-700/50 hover:text-white border border-slate-700/50'
+											}`}
+										>
+											{category === 'All' ? t('common.all') : category}
+										</button>
+									))}
+								</div>
+							</div>
+						</div>
+					</div>
+				)}
+
+				{/* Brands Grid */}
 				{isLoading ? (
 					<BrandsPageSkeleton
-						showCategories={false}
-						categoriesCount={0}
+						showCategories={true}
+						categoriesCount={8}
 						brandsCount={12}
 					/>
-				) : !filteredBrands || filteredBrands.length === 0 ? (
+				) : filteredBrands.length === 0 ? (
 					<div className="text-center py-12">
-						<p className="text-gray-400 text-lg">No Brands Found</p>
+						<p className="text-gray-400 text-lg">{t('brands.noBrands')}</p>
 					</div>
 				) : (
 					<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
